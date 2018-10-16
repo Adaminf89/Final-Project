@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "905154758855",
+    "firebase_url": "https://droppit-c07a2.firebaseio.com",
+    "project_id": "droppit-c07a2",
+    "storage_bucket": "droppit-c07a2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:905154758855:android:93545e33c17e80d2",
+        "android_client_info": {
+          "package_name": "com.example.adaminfiesto.droppit"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "905154758855-k0qcb4j72a3qhjivvtfei6gp55olf68q.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCKrp0p48PEaD8CP9FEpGBxTQjd5cpxH9o"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

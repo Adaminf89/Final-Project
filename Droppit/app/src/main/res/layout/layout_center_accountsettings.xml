@@ -1,0 +1,50 @@
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:TODO="http://schemas.android.com/tools">
+
+    <!--TODO: may have to change height to wrap content later-->
+
+    <RelativeLayout
+
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:padding="20dp"
+        android:background="@color/white">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textSettings"
+            android:text="@string/account_settings"
+            android:textSize="35sp"
+            android:textColor="@color/black"/>
+            <!--android:background="@drawable/grey_border_bottom"-->
+
+
+        <Button
+            android:id="@+id/btn_logout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/textSettings"
+            android:text="Setting" />
+
+        <Button
+            android:id="@+id/btn_info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/btn_logout"
+            android:text="Logout" />
+
+        <Button
+            android:id="@+id/btn_about"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/btn_info"
+            android:text="About" />
+
+
+    </RelativeLayout>
+
+
+
+</merge>

@@ -3,6 +3,7 @@ package com.example.adaminfiesto.droppit.Main;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.support.v4.app.ActivityCompat;
@@ -257,6 +258,20 @@ public class FragmentMap extends Fragment implements
             @Override
             public void onInfoWindowClick(Marker marker)
             {
+                String index = marker.getId();
+                index = index.replace("m","");
+                String photoID = mPhotos.get(Integer.valueOf(index)).getPhoto_id();
+                //photoID = photoID.replace("-","");
+
+
+                //send this uuid.
+                SharedPreferences sharedPreferences = getActivity().getSharedPreferences("photoID", Context.MODE_PRIVATE);
+                SharedPreferences.Editor ed = sharedPreferences.edit();
+
+                ed.putString("photo",photoID);
+                ed.apply();
+
+                Log.d(TAG, "onInfoWindowClick:is marker and photo the same " +marker.getTitle());
                 Intent detailActivity = new Intent(getActivity(), DetailActivity.class);
                 detailActivity.putExtra(String.valueOf(R.string.to_detail), "detail");
                 startActivity(detailActivity);

@@ -206,11 +206,6 @@ public class FirebaseMethods
                 });
     }
 
-    public void addLocation(LatLng location)
-    {
-        myRef.child("location").child(userID).setValue(location);
-    }
-
     public void addNewUser(String email, String username, String description, String profile_photo)
     {
 
@@ -402,7 +397,7 @@ public class FirebaseMethods
 
             String user_id = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-            StorageReference storageReference = mStorageReference.child(filePaths.FIREBASE_IMAGE_STORAGE + "/" + user_id + "/photo" + (count + 1));
+            final StorageReference storageReference = mStorageReference.child(filePaths.FIREBASE_IMAGE_STORAGE + "/" + user_id + "/photo" + (count + 1));
 
             //convert image url to bitmap
             if(bm == null)
@@ -422,16 +417,19 @@ public class FirebaseMethods
                 @Override
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot)
                 {
-                    Task<Uri> firebaseUrl = taskSnapshot.getMetadata().getReference().getDownloadUrl();
 
-                    Toast.makeText(mContext, "photo upload success", Toast.LENGTH_SHORT).show();
+                    storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>()
+                        {
+                            @Override
+                            public void onSuccess(Uri uri)
+                            {
+                                Uri firebaseUrl = uri;
 
-                    //add the new photo to 'photos' node and 'user_photos' node
-                    addPhotoToDatabase(caption, firebaseUrl.toString(), location, locationlong, privatedata);
-//TODO:implement navback
-                    //navigate to the main feed so the user can see their photo
-//                    Intent intent = new Intent(mContext, HomeActivity.class);
-//                    mContext.startActivity(intent);
+                                Toast.makeText(mContext, "photo upload success", Toast.LENGTH_SHORT).show();
+                                //add the new photo to 'photos' node and 'user_photos' node
+                                addPhotoToDatabase(caption, firebaseUrl.toString(), location, locationlong, privatedata);
+                            }
+                        });
                 }
             }).addOnFailureListener(new OnFailureListener()
             {
@@ -468,7 +466,7 @@ public class FirebaseMethods
 
             String user_id = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-            StorageReference storageReference = mStorageReference.child(filePaths.FIREBASE_IMAGE_STORAGE + "/" + user_id + "/profile_photo");
+            final StorageReference storageReference = mStorageReference.child(filePaths.FIREBASE_IMAGE_STORAGE + "/" + user_id + "/profile_photo");
 
             //convert image url to bitmap
             if(bm == null)
@@ -486,17 +484,21 @@ public class FirebaseMethods
                 @Override
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot)
                 {
-                    Task<Uri> firebaseUrl = taskSnapshot.getMetadata().getReference().getDownloadUrl();
 
-                    Toast.makeText(mContext, "photo upload success", Toast.LENGTH_SHORT).show();
+                    storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>()
+                    {
+                        @Override
+                        public void onSuccess(Uri uri)
+                        {
+                            Uri firebaseurl = uri;
+                            setProfilePhoto(firebaseurl.toString());
 
-                    //insert into 'user_account_settings' node
-                    setProfilePhoto(firebaseUrl.toString());
-
-                    ((AccountSettingActivity)mContext).setViewPager(((AccountSettingActivity)mContext).
-                            pagerAdapter.getFragmentNumber(mContext.getString(R.string.edit_profile_fragment))
-                    );
-
+                            //TODO:implement navback
+                            //navigate to the main feed so the user can see their photo
+//                    Intent intent = new Intent(mContext, HomeActivity.class);
+//                    mContext.startActivity(intent);
+                        }
+                    });
                 }
             }).addOnFailureListener(new OnFailureListener()
             {

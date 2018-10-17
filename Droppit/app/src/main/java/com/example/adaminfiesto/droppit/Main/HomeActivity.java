@@ -126,7 +126,7 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
 //                    next.putExtra("latlang", dalocation.toString());
 //                    LocalBroadcastManager.getInstance(HomeActivity.this).sendBroadcast(next);
 
-                SharedPreferences sharedPreferences = getSharedPreferences("Test",Context.MODE_PRIVATE);
+                SharedPreferences sharedPreferences = getSharedPreferences("Test", Context.MODE_PRIVATE);
                 SharedPreferences.Editor ed = sharedPreferences.edit();
 
                 ed.putFloat("lat", (float) dalocation.latitude);

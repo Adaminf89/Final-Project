@@ -52,6 +52,7 @@ public class NextActivity extends AppCompatActivity
     private String mAppend = "file:/";
     private int imageCount = 0;
     private String imgUrl;
+    String isPrivate;
     private Bitmap bitmap;
     private Intent intent;
 
@@ -64,9 +65,28 @@ public class NextActivity extends AppCompatActivity
         mFirebaseMethods = new FirebaseMethods(NextActivity.this);
         mCaption = (EditText) findViewById(R.id.caption);
         mCheckBox = (CheckBox)findViewById(R.id.privatebox);
+        isPrivate = "false";
+        mCheckBox.setText("This is Private");
 
-//        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, new IntentFilter(String.valueOf(R.string.intent_location)));
+//      LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, new IntentFilter(String.valueOf(R.string.intent_location)));
 
+        mCheckBox.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+               if(mCheckBox.isChecked())
+               {
+                   isPrivate = "true";
+                   mCheckBox.setText("This is not Private");
+               }
+               else
+                   {
+                       mCheckBox.setText("This is Private");
+                       isPrivate = "false";
+                   }
+            }
+        });
 
         getSharedData();
         setupFirebaseAuth();
@@ -94,7 +114,7 @@ public class NextActivity extends AppCompatActivity
                 Toast.makeText(NextActivity.this, "Attempting to upload new photo", Toast.LENGTH_SHORT).show();
 
                 String caption = mCaption.getText().toString();
-                String isPrivate = String.valueOf(mCheckBox.isChecked());
+
 
                 Log.d(TAG, "onIsPrivate: "+isPrivate);
                 if(location == null)
@@ -153,9 +173,8 @@ public class NextActivity extends AppCompatActivity
 //    };
 
 
-    /**
-     * gets the image url from the incoming intent and displays the chosen image
-     */
+
+     // gets the image url from the incoming intent and displays the chosen image
     private void setImage()
     {
         intent = getIntent();

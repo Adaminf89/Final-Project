@@ -7,12 +7,13 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
+
 import android.location.Location;
 import android.location.LocationListener;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -22,6 +23,7 @@ import android.view.ViewGroup;
 import com.example.adaminfiesto.droppit.DataModels.Photo;
 import com.example.adaminfiesto.droppit.Detail.DetailActivity;
 import com.example.adaminfiesto.droppit.R;
+import com.example.adaminfiesto.droppit.Utils.FirebaseMethods;
 import com.example.adaminfiesto.droppit.Utils.UniversalImageLoader;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -35,6 +37,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -55,6 +59,11 @@ public class FragmentMap extends Fragment implements
         LocationListener,
         GoogleMap.OnMapLongClickListener
 {
+    private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener mAuthListener;
+    private FirebaseDatabase mFirebaseDatabase;
+    private DatabaseReference myRef;
+    private FirebaseMethods mFirebaseMethods;
 
     MapView gMapView;
     private GoogleMap mMap = null;
@@ -83,6 +92,15 @@ public class FragmentMap extends Fragment implements
         datapasser = (dataPass) context;
     }
 
+    public static FragmentMap newInstance(ArrayList<Photo> photos) {
+
+        Bundle args = new Bundle();
+        FragmentMap fragment = new FragmentMap();
+        args.putParcelableArrayList("pArray", photos);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState)
@@ -102,6 +120,11 @@ public class FragmentMap extends Fragment implements
             gMapView.getMapAsync(this);
             mUsers = new ArrayList<>();
             mPhotos = new ArrayList<>();
+
+            if(getArguments() != null)
+            {
+                mPhotos = getArguments().getParcelableArrayList("pArray");
+            }
 
         }
         catch (Exception e)
@@ -148,6 +171,7 @@ public class FragmentMap extends Fragment implements
 
         setHasOptionsMenu(true);
     }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
@@ -226,7 +250,6 @@ public class FragmentMap extends Fragment implements
 
                 locationlat = location.getLatitude();
                 locationlong = location.getLongitude();
-
                 zoomInCamara(location);
 
             }
@@ -253,6 +276,7 @@ public class FragmentMap extends Fragment implements
 
         mMap.setMyLocationEnabled(true);
         mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+       //if marker info is cliked
         mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener()
         {
             @Override
@@ -264,31 +288,34 @@ public class FragmentMap extends Fragment implements
 
                 if(Integer.valueOf(index) >= mPhotos.size())
                 {
-                    getUserPhoto();
+//                    getUserPhoto();
                 }
                 else
                     {
-                    String photoID = mPhotos.get(Integer.valueOf(index)).getPhoto_id();
+                        String photoID = mPhotos.get(Integer.valueOf(index)).getPhoto_id();
 
 
-                    //send this uuid.
-                    SharedPreferences sharedPreferences = getActivity().getSharedPreferences("photoID", Context.MODE_PRIVATE);
-                    SharedPreferences.Editor ed = sharedPreferences.edit();
+                        //send this uuid.
+                        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("photoID", Context.MODE_PRIVATE);
+                        SharedPreferences.Editor ed = sharedPreferences.edit();
 
-                    ed.putString("photo", photoID);
-                    ed.apply();
+                        ed.putString("photo", photoID);
+                        ed.apply();
 
-                    Log.d(TAG, "onInfoWindowClick:is marker and photo the same " + marker.getTitle());
-                    Intent detailActivity = new Intent(getActivity(), DetailActivity.class);
-                    detailActivity.putExtra(String.valueOf(R.string.to_detail), "detail");
-                    startActivity(detailActivity);
+                        //clear frag data
+                        mPhotos.clear();
+                        mUsers.clear();
+
+                        Log.d(TAG, "onInfoWindowClick:is marker and photo the same " + marker.getTitle());
+                        Intent detailActivity = new Intent(getActivity(), DetailActivity.class);
+                        detailActivity.putExtra(String.valueOf(R.string.to_detail), "detail");
+                        startActivity(detailActivity);
                 }
             }
         });
 
-        getUserPhoto();
+        makeMarker();
         getDeviceLocation();
-
     }
 
     private void makeMarker()
@@ -301,15 +328,14 @@ public class FragmentMap extends Fragment implements
             MarkerOptions options = new MarkerOptions();
 
             options.title(mPhotos.get(i).getCaption());
-            //options.snippet(mPhotos.get(i).getTags() + "~" + arrayLocation.get(i).getpImage());
             options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-//            UniversalImageLoader.setImage(mPhotos.get(i).getImage_path(),,null,"");
             LatLng ToShow = new LatLng(Double.valueOf(mPhotos.get(i).getLocation()), Double.valueOf(mPhotos.get(i).getLocationlong()));
 
             options.position(ToShow);
 
             mMap.addMarker(options);
         }
+
     }
 
     @Override
@@ -364,15 +390,22 @@ public class FragmentMap extends Fragment implements
     {
         super.onStart();
         if (gMapView != null)
+        {
+
             gMapView.onStart();
+        }
     }
 
     @Override
     public void onStop()
     {
         super.onStop();
+
         if (gMapView != null)
+        {
             gMapView.onStop();
+        }
+
 
     }
 
@@ -392,83 +425,94 @@ public class FragmentMap extends Fragment implements
             gMapView.onDestroy();
     }
 
-    private void getUserPhoto()
-    {
+//
+//    private void getUserPhoto()
+//    {
+//
+//        FirebaseDatabase database = FirebaseDatabase.getInstance();
+//        DatabaseReference reference = database.getReference(getString(R.string.dbname_user_photos));
+//        Query query = reference;
+//        //Query query = mFirebaseDatabase.getReference(getString(R.string.dbname_user_photos));;
+//
+//        query.addValueEventListener(new ValueEventListener()
+//        {
+//            @Override
+//            public void onDataChange(DataSnapshot dataSnapshot)
+//            {
+//                Log.d(TAG,"database of userphotos" +dataSnapshot.toString());
+//
+//                for(DataSnapshot singleSnapshot : dataSnapshot.getChildren())
+//                {
+//                    //Log.d(TAG, "onDataChange: found user: " + singleSnapshot.child(getString(R.string.field_user_id)).getValue());
+//
+//                    mUsers.add(singleSnapshot.getKey().toString());
+//                }
+//
+//                getPhotos();
+//            }
+//
+//            public void onCancelled(DatabaseError databaseError)
+//            {
+//
+//            }
+//        });
+//
+//    }
+//
+//    private void getPhotos()
+//    {
+//        DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
+//
+//        for(int i = 0; i < mUsers.size(); i++)
+//        {
+//            Query query = reference.child(getString(R.string.dbname_user_photos))
+//                    .child(mUsers.get(i)).orderByChild(getString(R.string.field_user_id)).equalTo(mUsers.get(i));
+//
+//            query.addListenerForSingleValueEvent(new ValueEventListener()
+//            {
+//                @Override
+//                public void onDataChange(@NonNull DataSnapshot dataSnapshot)
+//                {
+//                    //soo we are within the user_photo nods as such we need to get the values
+//                    //of the nods and put them to the phote/droppit class
+//                    for(DataSnapshot singleSnapshot : dataSnapshot.getChildren())
+//                    {
+//                        Photo photo = new Photo();
+//                        Map<String, Object> objectMap = (HashMap<String, Object>) singleSnapshot.getValue();
+//
+//                        photo.setCaption(objectMap.get(getString(R.string.field_caption)).toString());
+//                        photo.setTags(objectMap.get(getString(R.string.field_tags)).toString());
+//                        photo.setPhoto_id(objectMap.get(getString(R.string.field_photo_id)).toString());
+//                        photo.setUser_id(objectMap.get(getString(R.string.field_user_id)).toString());
+//                        photo.setLocation(objectMap.get(getString(R.string.field_location)).toString());
+//                        photo.setLocationlong(objectMap.get(getString(R.string.field_locationlong)).toString());
+//                        photo.setmPrivate(objectMap.get(getString(R.string.field_date_private)).toString());
+//                        photo.setDate_created(objectMap.get(getString(R.string.field_date_created)).toString());
+//                        photo.setImage_path(objectMap.get(getString(R.string.field_image_path)).toString());
+//
+//                        mPhotos.add(photo);
+//
+//                    }
+//                         makeMarker();
+//
+//                }
+//
+//                @Override
+//                public void onCancelled(@NonNull DatabaseError databaseError) {
+//
+//                }
+//            });
+//        }
+//
+//    }
 
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference reference = database.getReference(getString(R.string.dbname_user_photos));
-        Query query = reference;
-
-        query.addValueEventListener(new ValueEventListener()
-        {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot)
-            {
-                Log.d(TAG,"database of userphotos" +dataSnapshot.toString());
-
-                for(DataSnapshot singleSnapshot : dataSnapshot.getChildren())
-                {
-                    //Log.d(TAG, "onDataChange: found user: " + singleSnapshot.child(getString(R.string.field_user_id)).getValue());
-
-                    mUsers.add(singleSnapshot.getKey().toString());
-                }
-
-                getPhotos();
-            }
-
-            public void onCancelled(DatabaseError databaseError)
-            {
-
-            }
-        });
-
-    }
-
-    private void getPhotos()
-    {
-        DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
-
-        for(int i = 0; i < mUsers.size(); i++)
-        {
-            Query query = reference.child(getString(R.string.dbname_user_photos))
-                    .child(mUsers.get(i)).orderByChild(getString(R.string.field_user_id)).equalTo(mUsers.get(i));
-
-            query.addListenerForSingleValueEvent(new ValueEventListener()
-            {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot)
-                {
-                    //soo we are within the user_photo nods as such we need to get the values
-                    //of the nods and put them to the phote/droppit class
-                    for(DataSnapshot singleSnapshot : dataSnapshot.getChildren())
-                    {
-                        Photo photo = new Photo();
-                        Map<String, Object> objectMap = (HashMap<String, Object>) singleSnapshot.getValue();
-
-                        photo.setCaption(objectMap.get(getString(R.string.field_caption)).toString());
-                        photo.setTags(objectMap.get(getString(R.string.field_tags)).toString());
-                        photo.setPhoto_id(objectMap.get(getString(R.string.field_photo_id)).toString());
-                        photo.setUser_id(objectMap.get(getString(R.string.field_user_id)).toString());
-                        photo.setLocation(objectMap.get(getString(R.string.field_location)).toString());
-                        photo.setLocationlong(objectMap.get(getString(R.string.field_locationlong)).toString());
-                        photo.setmPrivate(objectMap.get(getString(R.string.field_date_private)).toString());
-                        photo.setDate_created(objectMap.get(getString(R.string.field_date_created)).toString());
-                        photo.setImage_path(objectMap.get(getString(R.string.field_image_path)).toString());
-
-                        mPhotos.add(photo);
-
-                    }
-                         makeMarker();
-
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                }
-            });
-        }
-
-    }
-
+//    @Override
+//    public void setUserVisibleHint(boolean isVisibleToUser)
+//    {
+//        super.setUserVisibleHint(isVisibleToUser);
+//        if(isVisibleToUser)
+//        {
+//            getUserPhoto();
+//        }
+//    }
 }

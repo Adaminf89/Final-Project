@@ -1,5 +1,6 @@
 package com.example.adaminfiesto.droppit.Detail;
 
+import android.app.FragmentManager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -17,6 +18,7 @@ import com.example.adaminfiesto.droppit.DataModels.Photo;
 import com.example.adaminfiesto.droppit.DataModels.UserAccountSettings;
 import com.example.adaminfiesto.droppit.DataModels.UserSettings;
 import com.example.adaminfiesto.droppit.Main.HomeActivity;
+import com.example.adaminfiesto.droppit.Main.NextActivity;
 import com.example.adaminfiesto.droppit.R;
 import com.example.adaminfiesto.droppit.Utils.FirebaseMethods;
 import com.example.adaminfiesto.droppit.Utils.UniversalImageLoader;
@@ -40,8 +42,8 @@ public class DetailFragmentPublic extends Fragment
     ImageView ivProfilePhoto;
     Button deleteBtn;
     FirebaseUser currentUser;
-    private String Uuid;
 
+    private String Uuid;
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
     private FirebaseDatabase mFirebaseDatabase;
@@ -56,8 +58,6 @@ public class DetailFragmentPublic extends Fragment
         DetailFragmentPublic fragment = new DetailFragmentPublic();
         fragment.setArguments(args);
         args.putParcelable("Photo", pdata);
-
-
         return fragment;
     }
 
@@ -89,9 +89,11 @@ public class DetailFragmentPublic extends Fragment
             deleteBtn.setVisibility(View.VISIBLE);
         }
 
-        deleteBtn.setOnClickListener(new View.OnClickListener() {
+        deleteBtn.setOnClickListener(new View.OnClickListener()
+        {
             @Override
-            public void onClick(View v) {
+            public void onClick(View v)
+            {
 
                 myRef.child(getContext().getString(R.string.dbname_user_photos))
                         .child(Uuid)

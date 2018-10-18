@@ -17,6 +17,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.GridView;
 import android.widget.ImageButton;
@@ -47,6 +48,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import de.hdodenhof.circleimageview.CircleImageView;
+
 public class ProfileFragment extends Fragment
 {
     private String TAG;
@@ -61,8 +64,8 @@ public class ProfileFragment extends Fragment
     //widgets
     private TextView mDisplayName, mUsername, mDescription;
     private ProgressBar mProgressBar;
-    private ImageView mProfilePhoto;
-    private ImageButton editProfile;
+    private CircleImageView mProfilePhoto;
+    private Button editProfile;
     private RecyclerView recyclerView;
     private Toolbar toolbar;
     private ImageView profileMenu;
@@ -83,7 +86,7 @@ public class ProfileFragment extends Fragment
         View view = inflater.inflate(R.layout.fragment_profile, null);
         mContext = getActivity();
         bottomNavigationView = view.findViewById(R.id.bottomNavView);
-        mProfilePhoto = (ImageView) view.findViewById(R.id.profile_photo);
+        mProfilePhoto = view.findViewById(R.id.profile_photo);
         mUsername =  view.findViewById(R.id.profile_username);
         mDescription = view.findViewById(R.id.display_bio);
         mProgressBar = view.findViewById(R.id.profileProgressBar);
@@ -191,11 +194,6 @@ public class ProfileFragment extends Fragment
                     }
 
                 }
-
-                //setup our image grid
-//                int gridWidth = getResources().getDisplayMetrics().widthPixels;
-//                int imageWidth = gridWidth/NUM_GRID_COLUMNS;
-//                gridView.setColumnWidth(imageWidth);
 
                 ArrayList<String> imgUrls = new ArrayList<String>();
 

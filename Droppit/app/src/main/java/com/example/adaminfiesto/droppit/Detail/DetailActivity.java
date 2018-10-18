@@ -6,7 +6,9 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -32,6 +34,7 @@ import java.util.Map;
 
 import static android.support.constraint.Constraints.TAG;
 import static com.example.adaminfiesto.droppit.R.layout.detail_activity;
+import static com.example.adaminfiesto.droppit.R.layout.layout_center_viewpager;
 
 public class DetailActivity extends AppCompatActivity
 {
@@ -44,6 +47,7 @@ public class DetailActivity extends AppCompatActivity
     private FirebaseMethods mFirebaseMethods;
     private String photoID;
     Photo pdata;
+    private ViewPager mViewPager;
     private int imageCount = 0;
 
     @Override
@@ -51,8 +55,8 @@ public class DetailActivity extends AppCompatActivity
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.detail_activity);
+        mViewPager = findViewById(R.id.viewpager_container);
         mFirebaseMethods = new FirebaseMethods(DetailActivity.this);
-
         getSharedData();
         setupFirebaseAuth();
         getPhotos();

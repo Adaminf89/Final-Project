@@ -1,5 +1,6 @@
 package com.example.adaminfiesto.droppit.Main;
 
+import android.app.FragmentManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -78,7 +79,7 @@ public class NextActivity extends AppCompatActivity
                if(mCheckBox.isChecked())
                {
                    isPrivate = "true";
-                   mCheckBox.setText("This is not Private");
+                   mCheckBox.setText("This is Public");
                }
                else
                    {
@@ -90,19 +91,7 @@ public class NextActivity extends AppCompatActivity
 
         getSharedData();
         setupFirebaseAuth();
-        TextView share = (TextView) findViewById(R.id.tvShare);
-
-//        ImageView backArrow = (ImageView) findViewById(R.id.ivBackArrow);
-
-//        backArrow.setOnClickListener(new View.OnClickListener()
-//          {
-//            @Override
-//            public void onClick(View v)
-//            {
-//                Log.d(TAG, "onClick: closing the activity");
-//                finish();
-//            }
-//        });
+        final TextView share = (TextView) findViewById(R.id.tvShare);
 
         share.setOnClickListener(new View.OnClickListener()
         {
@@ -110,13 +99,14 @@ public class NextActivity extends AppCompatActivity
             public void onClick(View v)
             {
                 Log.d(TAG, "onClick: navigating to the final share screen.");
+
                 //upload the image to firebase
                 Toast.makeText(NextActivity.this, "Attempting to upload new photo", Toast.LENGTH_SHORT).show();
-
+                //pop the backstack so the map will be refeshed for when it has to load again
+                //NextActivity.this.getSupportFragmentManager().popBackStack("FragmentMap", FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 String caption = mCaption.getText().toString();
-
-
                 Log.d(TAG, "onIsPrivate: "+isPrivate);
+
                 if(location == null)
                 {
                     Toast.makeText(NextActivity.this,"Something went wrong with your location check your service and try again", Toast.LENGTH_LONG).show();
@@ -127,11 +117,13 @@ public class NextActivity extends AppCompatActivity
                         //uploading a userphoto or brandnew photo
                         if(intent.hasExtra(getString(R.string.selected_image)))
                         {
+                            share.setClickable(false);
                             imgUrl = intent.getStringExtra(getString(R.string.selected_image));
                             mFirebaseMethods.uploadNewPhoto(getString(R.string.new_photo), caption, isPrivate, imageCount, imgUrl,null, Double.toString(latitude), Double.toString(longitude));
                         }
                         else if(intent.hasExtra(getString(R.string.selected_bitmap)))
                         {
+                            share.setClickable(false);
                             bitmap = (Bitmap) intent.getParcelableExtra(getString(R.string.selected_bitmap));
                             mFirebaseMethods.uploadNewPhoto(getString(R.string.new_photo), caption, isPrivate, imageCount,null, bitmap, Double.toString(latitude), Double.toString(longitude));
                         }
@@ -140,6 +132,7 @@ public class NextActivity extends AppCompatActivity
         });
 
         setImage();
+        share.setClickable(true);
     }
 
     private void getSharedData()
@@ -154,24 +147,6 @@ public class NextActivity extends AppCompatActivity
         location = new LatLng(latitude,longitude);
 
     }
-
-//    private BroadcastReceiver mReceiver = new BroadcastReceiver()
-//    {
-//        @Override
-//        public void onReceive(Context context, Intent intent)
-//        {
-//            String[] latlong;
-//
-//            latlong = intent.getStringExtra("latlang").split(",");
-//
-//            double latitude = Double.parseDouble(latlong[0]);
-//            double longitude = Double.parseDouble(latlong[1]);
-//
-//            location = new LatLng(latitude,longitude);
-//
-//        }
-//    };
-
 
 
      // gets the image url from the incoming intent and displays the chosen image
@@ -224,7 +199,6 @@ public class NextActivity extends AppCompatActivity
             }
         };
 
-
         myRef.addValueEventListener(new ValueEventListener()
         {
             @Override
@@ -243,17 +217,19 @@ public class NextActivity extends AppCompatActivity
         });
     }
 
-
     @Override
-    public void onStart() {
+    public void onStart()
+    {
         super.onStart();
         mAuth.addAuthStateListener(mAuthListener);
     }
 
     @Override
-    public void onStop() {
+    public void onStop()
+    {
         super.onStop();
-        if (mAuthListener != null) {
+        if (mAuthListener != null)
+        {
             mAuth.removeAuthStateListener(mAuthListener);
         }
     }

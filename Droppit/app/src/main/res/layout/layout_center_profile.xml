@@ -20,16 +20,26 @@
                 android:orientation="vertical"
                 android:gravity="center">
 
-                <ImageView
+
+                <de.hdodenhof.circleimageview.CircleImageView
                     android:id="@+id/profile_photo"
                     android:layout_width="80dp"
-                    android:layout_height="80dp"/>
+                    android:layout_height="80dp"
+                    app:civ_border_color="@color/black"
+                    app:civ_border_width="0.5dp"
+                    />
+
+                <!--<ImageView-->
+                    <!--android:id="@+id/profile_photo"-->
+                    <!--android:layout_width="80dp"-->
+                    <!--android:layout_height="80dp"/>-->
 
 
-                <ImageButton
+                <Button
                     android:id="@+id/editButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:text="EDIT"
                     app:srcCompat="@drawable/common_google_signin_btn_icon_dark"
                     tools:layout_editor_absoluteY="156dp" />
 
@@ -60,7 +70,7 @@
             <android.support.v7.widget.RecyclerView
                 android:id="@+id/recyclerview"
                 android:layout_width="match_parent"
-                android:layout_height="150dp"
+                android:layout_height="180dp"
                 android:scrollbars="horizontal">
 
             </android.support.v7.widget.RecyclerView>

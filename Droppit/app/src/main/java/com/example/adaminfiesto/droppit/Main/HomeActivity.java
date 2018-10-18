@@ -1,5 +1,6 @@
 package com.example.adaminfiesto.droppit.Main;
 
+import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -11,6 +12,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -21,8 +23,11 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
+import com.example.adaminfiesto.droppit.DataModels.Photo;
 import com.example.adaminfiesto.droppit.Login.LoginActivity;
 import com.example.adaminfiesto.droppit.R;
+import com.example.adaminfiesto.droppit.UserProfile.ProfileActivity;
+import com.example.adaminfiesto.droppit.UserProfile.ProfileFragment;
 import com.example.adaminfiesto.droppit.Utils.BottomNavigationViewHelper;
 import com.example.adaminfiesto.droppit.Utils.Permissions;
 import com.example.adaminfiesto.droppit.Utils.SectionsPagerAdapter;
@@ -30,8 +35,20 @@ import com.example.adaminfiesto.droppit.Utils.UniversalImageLoader;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
 import com.nostra13.universalimageloader.core.ImageLoader;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import static android.support.constraint.Constraints.TAG;
 
 
 public class HomeActivity extends AppCompatActivity implements FragmentMap.dataPass
@@ -52,6 +69,8 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
     FloatingActionButton fab;
     private String TAG;
     private LatLng dalocation;
+    private ArrayList<String> mUsers;
+    private ArrayList<Photo> mPhotos;
 
 
 
@@ -64,15 +83,16 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
         mViewPager = findViewById(R.id.viewpager_container);
         mRelativeLayout = findViewById(R.id.relLayoutParent);
         fab = findViewById(R.id.floatingActionButton);
-
+        mUsers = new ArrayList<>();
+        mPhotos = new ArrayList<>();
         setupBottomNavigationView();
-        setupViewPager();
         setupFirebaseAuth();
         initImageLoader();
+        getUserPhoto();
 
         if(checkPermissionsArray(Permissions.PERMISSIONS))
         {
-            setupViewPager();
+           getUserPhoto();
         }
         else
         {
@@ -89,14 +109,11 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
                     Log.d(TAG, "onClick: starting camera");
                     //send the location alone via broadcast
                     Log.d(TAG, "onClick: location "+ dalocation);
-
                     Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                     startActivityForResult(cameraIntent, CAMERA_REQUEST_CODE);
-
                 }
                 else
                 {
-
                     return;
                 }
             }
@@ -154,30 +171,122 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
         ImageLoader.getInstance().init(universalImageLoader.getConfig());
     }
 
-    //we have merged our bottom and top tabs with the view to work along with the fragment
-    //here we can use the layout_top_tabs.xml with the center_viewpager.xml to cycle through our fragments
-    //remember to "include" the above xml into the activity_home.xml
-    public int getCurrentTabNumber()
+
+    private void setupViewPager()
     {
-        return mViewPager.getCurrentItem();
+        FragmentMap fragment = new FragmentMap();
+        FragmentTransaction transaction = HomeActivity.this.getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.container2, FragmentMap.newInstance(mPhotos));
+        transaction.addToBackStack("FragmentMap");
+        transaction.commitAllowingStateLoss();
     }
 
     //top tab fragments that connect to the view pager
-    private void setupViewPager()
+//    private void setupViewPager()
+//    {
+//        SectionsPagerAdapter adapter = new SectionsPagerAdapter(getSupportFragmentManager());
+//        adapter.addFragment(new FragmentAR()); //index 0
+//        adapter.addFragment(new FragmentMap()); //index 1
+//        adapter.addFragment(new EventFragment());//index 2
+//        mViewPager.setAdapter(adapter);
+//
+//        TabLayout tabLayout = findViewById(R.id.tabs);
+//        tabLayout.setupWithViewPager(mViewPager);
+//
+//
+//        tabLayout.getTabAt(0).setText("AR");
+//        tabLayout.getTabAt(1).setText("Map");
+//        tabLayout.getTabAt(2).setText("Event");
+//    }
+
+    private void getUserPhoto()
     {
-        SectionsPagerAdapter adapter = new SectionsPagerAdapter(getSupportFragmentManager());
-        adapter.addFragment(new FragmentAR()); //index 0
-        adapter.addFragment(new FragmentMap()); //index 1
-        adapter.addFragment(new EventFragment());//index 2
-        mViewPager.setAdapter(adapter);
 
-        TabLayout tabLayout = findViewById(R.id.tabs);
-        tabLayout.setupWithViewPager(mViewPager);
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference reference = database.getReference(getString(R.string.dbname_user_photos));
+        Query query = reference;
 
+        mPhotos.clear();
+        mUsers.clear();
 
-        tabLayout.getTabAt(0).setText("AR");
-        tabLayout.getTabAt(1).setText("Map");
-        tabLayout.getTabAt(2).setText("Event");
+        query.addValueEventListener(new ValueEventListener()
+        {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot)
+            {
+                Log.d(TAG,"database of userphotos" +dataSnapshot.toString());
+
+                for(DataSnapshot singleSnapshot : dataSnapshot.getChildren())
+                {
+                    //Log.d(TAG, "onDataChange: found user: " + singleSnapshot.child(getString(R.string.field_user_id)).getValue());
+
+                    mUsers.add(singleSnapshot.getKey().toString());
+                }
+
+                getPhotos();
+            }
+
+            public void onCancelled(DatabaseError databaseError)
+            {
+
+            }
+        });
+
+    }
+
+    private void getPhotos()
+    {
+        DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
+
+        for(int i = 0; i < mUsers.size(); i++)
+        {
+            Query query = reference.child(getString(R.string.dbname_user_photos))
+                    .child(mUsers.get(i)).orderByChild(getString(R.string.field_user_id)).equalTo(mUsers.get(i));
+
+            query.addListenerForSingleValueEvent(new ValueEventListener()
+            {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot)
+                {
+                    //soo we are within the user_photo nods as such we need to get the values
+                    //of the nods and put them to the phote/droppit class
+                    for(DataSnapshot singleSnapshot : dataSnapshot.getChildren())
+                    {
+                        Photo photo = new Photo();
+                        Map<String, Object> objectMap = (HashMap<String, Object>) singleSnapshot.getValue();
+
+                        photo.setCaption(objectMap.get(getString(R.string.field_caption)).toString());
+                        photo.setTags(objectMap.get(getString(R.string.field_tags)).toString());
+                        photo.setPhoto_id(objectMap.get(getString(R.string.field_photo_id)).toString());
+                        photo.setUser_id(objectMap.get(getString(R.string.field_user_id)).toString());
+                        photo.setLocation(objectMap.get(getString(R.string.field_location)).toString());
+                        photo.setLocationlong(objectMap.get(getString(R.string.field_locationlong)).toString());
+                        photo.setmPrivate(objectMap.get(getString(R.string.field_date_private)).toString());
+                        photo.setDate_created(objectMap.get(getString(R.string.field_date_created)).toString());
+                        photo.setImage_path(objectMap.get(getString(R.string.field_image_path)).toString());
+
+                        mPhotos.add(photo);
+
+                    }
+
+                    Runnable r = new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            setupViewPager();
+                        }
+                    };
+                    r.run();
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+        }
+
     }
 
     //since every layout has the xml bottem navView we can use this method to nav back and forth
@@ -247,7 +356,6 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
         return true;
     }
 
-
     private void setupFirebaseAuth()
     {
         Log.d(TAG, "setupFirebaseAuth: setting up firebase auth.");
@@ -282,13 +390,14 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
     {
         super.onStart();
         mAuth.addAuthStateListener(mAuthListener);
-        mViewPager.setCurrentItem(1);
+
     }
 
     @Override
     public void onStop()
     {
         super.onStop();
+
         if (mAuthListener != null)
         {
             mAuth.removeAuthStateListener(mAuthListener);
@@ -300,8 +409,11 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
     protected void onResume()
     {
         super.onResume();
+        getUserPhoto();
         Log.d(TAG, "onResume: " + dalocation);
     }
+
+
 
     @Override
     public void location(LatLng lat) {

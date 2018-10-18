@@ -1,5 +1,6 @@
 package com.example.adaminfiesto.droppit.Utils;
 
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -21,10 +22,16 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter
     }
 
     @Override
-    public Fragment getItem(int position) {
+    public Fragment getItem(int position)
+    {
         return mFragmentList.get(position);
     }
 
+    @Override
+    public int getItemPosition(@NonNull Object object)
+    {
+        return POSITION_NONE;
+    }
 
     @Override
     public int getCount() {

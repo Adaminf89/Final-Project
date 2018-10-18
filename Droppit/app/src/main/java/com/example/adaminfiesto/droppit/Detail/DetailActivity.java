@@ -66,12 +66,22 @@ public class DetailActivity extends AppCompatActivity
 
         if(checker.equals("detail"))
         {
+            if(pdata.getmPrivate().toString().equals("false"))
+            {
+                DetailFragmentPrivate fragment = new DetailFragmentPrivate();
+                FragmentTransaction transaction = DetailActivity.this.getSupportFragmentManager().beginTransaction();
+                transaction.replace(R.id.container, fragment.newInstance(pdata));
+                //transaction.addToBackStack(getString(R.string.profile_fragment));
+                transaction.commit();
+            }
+            else
+                {
+                    DetailFragmentPublic fragment = new DetailFragmentPublic();
+                    FragmentTransaction transaction = DetailActivity.this.getSupportFragmentManager().beginTransaction();
+                    transaction.replace(R.id.container, fragment.newInstance(pdata));
+                    transaction.commit();
+                }
 
-            DetailFragmentPrivate fragment = new DetailFragmentPrivate();
-            FragmentTransaction transaction = DetailActivity.this.getSupportFragmentManager().beginTransaction();
-            transaction.replace(R.id.container, fragment.newInstance(pdata));
-            //transaction.addToBackStack(getString(R.string.profile_fragment));
-            transaction.commit();
         }
     }
 

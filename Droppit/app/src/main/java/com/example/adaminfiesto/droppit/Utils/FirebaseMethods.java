@@ -1,19 +1,18 @@
 package com.example.adaminfiesto.droppit.Utils;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.widget.Toast;
-
 import com.example.adaminfiesto.droppit.DataModels.Photo;
 import com.example.adaminfiesto.droppit.DataModels.UserSettings;
+import com.example.adaminfiesto.droppit.Main.HomeActivity;
 import com.example.adaminfiesto.droppit.R;
 import com.example.adaminfiesto.droppit.DataModels.User;
 import com.example.adaminfiesto.droppit.DataModels.UserAccountSettings;
-import com.example.adaminfiesto.droppit.UserProfile.AccountSettingActivity;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -28,7 +27,6 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -61,28 +59,6 @@ public class FirebaseMethods
         {
             userID = mAuth.getCurrentUser().getUid();
         }
-    }
-
-    public boolean checkIfUsernameExists(String username, DataSnapshot datasnapshot)
-    {
-        Log.d(TAG, "checkIfUsernameExists: checking if " + username + " already exists.");
-
-        User user = new User();
-
-        for (DataSnapshot ds: datasnapshot.child(userID).getChildren())
-        {
-            Log.d(TAG, "checkIfUsernameExists: datasnapshot: " + ds);
-
-            user.setUsername(ds.getValue(User.class).getUsername());
-            Log.d(TAG, "checkIfUsernameExists: username: " + user.getUsername());
-
-            if(StringManipulation.expandUsername(user.getUsername()).equals(username))
-            {
-                Log.d(TAG, "checkIfUsernameExists: FOUND A MATCH: " + user.getUsername());
-                return true;
-            }
-        }
-        return false;
     }
 
     //Will update the useraccountnode
@@ -140,15 +116,20 @@ public class FirebaseMethods
                 .setValue(username);
     }
 
-    //update the email in the 'user's' node @param email
-    public void updateEmail(String email)
+    public void delete(String photoId)
     {
-        Log.d(TAG, "updateEmail: upadting email to: " + email);
+        Log.d(TAG, "updateEmail: upadting email to: " + photoId);
 
-        myRef.child(mContext.getString(R.string.dbname_users))
+//        myRef.child(mContext.getString(R.string.dbname_users))
+//                .child(userID)
+//                .child(mContext.getString(R.string.field_email))
+//                .setValue(email);
+
+        myRef.child(mContext.getString(R.string.dbname_user_photos))
                 .child(userID)
-                .child(mContext.getString(R.string.field_email))
-                .setValue(email);
+                .child(photoId)
+                .removeValue();
+
 
     }
 
@@ -382,7 +363,6 @@ public class FirebaseMethods
                 .setValue(url);
     }
 
-
     //add the photos to the database
     public void uploadNewPhoto(String photoType, final String caption, final String privatedata, final int count, final String imgUrl, Bitmap bm, final String location, final String locationlong)
     {
@@ -428,6 +408,10 @@ public class FirebaseMethods
                                 Toast.makeText(mContext, "photo upload success", Toast.LENGTH_SHORT).show();
                                 //add the new photo to 'photos' node and 'user_photos' node
                                 addPhotoToDatabase(caption, firebaseUrl.toString(), location, locationlong, privatedata);
+
+                                Intent intent = new Intent(mContext, HomeActivity.class);
+                                //intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                mContext.startActivity(intent);
                             }
                         });
                 }
@@ -496,6 +480,7 @@ public class FirebaseMethods
                             //TODO:implement navback
                             //navigate to the main feed so the user can see their photo
 //                    Intent intent = new Intent(mContext, HomeActivity.class);
+//                    //intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
 //                    mContext.startActivity(intent);
                         }
                     });

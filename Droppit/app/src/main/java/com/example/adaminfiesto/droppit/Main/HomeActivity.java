@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
@@ -20,6 +21,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
+import com.example.adaminfiesto.droppit.Login.LoginActivity;
 import com.example.adaminfiesto.droppit.R;
 import com.example.adaminfiesto.droppit.Utils.BottomNavigationViewHelper;
 import com.example.adaminfiesto.droppit.Utils.Permissions;
@@ -27,6 +29,7 @@ import com.example.adaminfiesto.droppit.Utils.SectionsPagerAdapter;
 import com.example.adaminfiesto.droppit.Utils.UniversalImageLoader;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
@@ -57,11 +60,15 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
-        mViewPager = findViewById(R.id.viewpager_container);
         mFrameLayout = findViewById(R.id.container);
+        mViewPager = findViewById(R.id.viewpager_container);
         mRelativeLayout = findViewById(R.id.relLayoutParent);
         fab = findViewById(R.id.floatingActionButton);
+
         setupBottomNavigationView();
+        setupViewPager();
+        setupFirebaseAuth();
+        initImageLoader();
 
         if(checkPermissionsArray(Permissions.PERMISSIONS))
         {
@@ -71,9 +78,6 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
         {
             verifyPermissions(Permissions.PERMISSIONS);
         }
-
-        //starts the universal image loader
-        initImageLoader();
 
         fab.setOnClickListener(new View.OnClickListener()
         {
@@ -92,9 +96,7 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
                 }
                 else
                 {
-//                    Intent intent = new Intent(getActivity(), ShareActivity.class);
-//                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-//                    startActivity(intent);
+
                     return;
                 }
             }
@@ -118,13 +120,10 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
                 Bitmap bitmap;
                 bitmap = (Bitmap) data.getExtras().get("data");
 
-                    Log.d(TAG, "onActivityResult: received new bitmap from camera: " + bitmap);
-                    Intent intent = new Intent(this, NextActivity.class);
-                    intent.putExtra(getString(R.string.selected_bitmap), bitmap);
+                Log.d(TAG, "onActivityResult: received new bitmap from camera: " + bitmap);
+                Intent intent = new Intent(this, NextActivity.class);
+                intent.putExtra(getString(R.string.selected_bitmap), bitmap);
 
-//                    Intent next = new Intent(String.valueOf(R.string.intent_location));
-//                    next.putExtra("latlang", dalocation.toString());
-//                    LocalBroadcastManager.getInstance(HomeActivity.this).sendBroadcast(next);
 
                 SharedPreferences sharedPreferences = getSharedPreferences("Test", Context.MODE_PRIVATE);
                 SharedPreferences.Editor ed = sharedPreferences.edit();
@@ -133,7 +132,7 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
                 ed.putFloat("long", (float) dalocation.longitude);
                 ed.commit();
 
-                    startActivity(intent);
+                startActivity(intent);
 
 
             }
@@ -222,6 +221,17 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
         }
     }
 
+    private void checkCurrentUser(FirebaseUser user)
+    {
+        Log.d(TAG, "checkCurrentUser: checking if user is logged in.");
+
+        if(user == null)
+        {
+            Intent intent = new Intent(mContext, LoginActivity.class);
+            startActivity(intent);
+        }
+    }
+
     //utilize array from permission class
     public boolean checkPermissionsArray(String[] permissions)
     {
@@ -237,11 +247,52 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
         return true;
     }
 
+
+    private void setupFirebaseAuth()
+    {
+        Log.d(TAG, "setupFirebaseAuth: setting up firebase auth.");
+
+        mAuth = FirebaseAuth.getInstance();
+
+        mAuthListener = new FirebaseAuth.AuthStateListener()
+        {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth)
+            {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+
+                //check if the user is logged in
+                checkCurrentUser(user);
+
+                if (user != null)
+                {
+                    // User is signed in
+                    Log.d(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
+                } else {
+                    // User is signed out
+                    Log.d(TAG, "onAuthStateChanged:signed_out");
+                }
+
+            }
+        };
+    }
+
     @Override
     protected void onStart()
     {
         super.onStart();
+        mAuth.addAuthStateListener(mAuthListener);
         mViewPager.setCurrentItem(1);
+    }
+
+    @Override
+    public void onStop()
+    {
+        super.onStop();
+        if (mAuthListener != null)
+        {
+            mAuth.removeAuthStateListener(mAuthListener);
+        }
     }
 
     //TODO:Reload the fragment
@@ -249,7 +300,6 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
     protected void onResume()
     {
         super.onResume();
-
         Log.d(TAG, "onResume: " + dalocation);
     }
 

@@ -52,15 +52,7 @@ public class ProfileActivity extends AppCompatActivity
                 if(!user.getUser_id().equals(FirebaseAuth.getInstance().getCurrentUser().getUid()))
                 {
                     Log.d(TAG, "init: inflating view profile");
-//                    ViewProfileFragment fragment = new ViewProfileFragment();
-//                    Bundle args = new Bundle();
-//                    args.putParcelable(getString(R.string.intent_user), intent.getParcelableExtra(getString(R.string.intent_user)));
-//                    fragment.setArguments(args);
-//
-//                    FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-//                    transaction.replace(R.id.container, fragment);
-//                    transaction.addToBackStack(getString(R.string.view_profile_fragment));
-//                    transaction.commit();
+
                 }
                 else
                 {

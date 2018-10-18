@@ -258,23 +258,31 @@ public class FragmentMap extends Fragment implements
             @Override
             public void onInfoWindowClick(Marker marker)
             {
+
                 String index = marker.getId();
                 index = index.replace("m","");
-                String photoID = mPhotos.get(Integer.valueOf(index)).getPhoto_id();
-                //photoID = photoID.replace("-","");
+
+                if(Integer.valueOf(index) >= mPhotos.size())
+                {
+                    getUserPhoto();
+                }
+                else
+                    {
+                    String photoID = mPhotos.get(Integer.valueOf(index)).getPhoto_id();
 
 
-                //send this uuid.
-                SharedPreferences sharedPreferences = getActivity().getSharedPreferences("photoID", Context.MODE_PRIVATE);
-                SharedPreferences.Editor ed = sharedPreferences.edit();
+                    //send this uuid.
+                    SharedPreferences sharedPreferences = getActivity().getSharedPreferences("photoID", Context.MODE_PRIVATE);
+                    SharedPreferences.Editor ed = sharedPreferences.edit();
 
-                ed.putString("photo",photoID);
-                ed.apply();
+                    ed.putString("photo", photoID);
+                    ed.apply();
 
-                Log.d(TAG, "onInfoWindowClick:is marker and photo the same " +marker.getTitle());
-                Intent detailActivity = new Intent(getActivity(), DetailActivity.class);
-                detailActivity.putExtra(String.valueOf(R.string.to_detail), "detail");
-                startActivity(detailActivity);
+                    Log.d(TAG, "onInfoWindowClick:is marker and photo the same " + marker.getTitle());
+                    Intent detailActivity = new Intent(getActivity(), DetailActivity.class);
+                    detailActivity.putExtra(String.valueOf(R.string.to_detail), "detail");
+                    startActivity(detailActivity);
+                }
             }
         });
 
@@ -400,7 +408,7 @@ public class FragmentMap extends Fragment implements
 
                 for(DataSnapshot singleSnapshot : dataSnapshot.getChildren())
                 {
-                    Log.d(TAG, "onDataChange: found user: " + singleSnapshot.child(getString(R.string.field_user_id)).getValue());
+                    //Log.d(TAG, "onDataChange: found user: " + singleSnapshot.child(getString(R.string.field_user_id)).getValue());
 
                     mUsers.add(singleSnapshot.getKey().toString());
                 }

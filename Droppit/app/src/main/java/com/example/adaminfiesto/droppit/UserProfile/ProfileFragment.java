@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -15,6 +17,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.GridLayout;
 import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -65,6 +68,7 @@ public class ProfileFragment extends Fragment
     private ImageView profileMenu;
     private BottomNavigationViewEx bottomNavigationView;
     private Context mContext;
+    private ArrayList<Photo> mPhotos;
     //TODO:get username, post, descriptions from firebase
     //todo: population the recycler view
 
@@ -88,6 +92,7 @@ public class ProfileFragment extends Fragment
         editProfile = view.findViewById(R.id.editButton);
         recyclerView = view.findViewById(R.id.recyclerview);
         mFirebaseMethods = new FirebaseMethods(getActivity());
+        mPhotos = new ArrayList<>();
 
         setupToolbar();
         setupFirebaseAuth();
@@ -152,9 +157,9 @@ public class ProfileFragment extends Fragment
     {
         Log.d(TAG, "setupGridView: Setting up image grid.");
 
-        final ArrayList<Photo> photos = new ArrayList<>();
+//        final ArrayList<Photo> photos = new ArrayList<>();
 
-        DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
+        final DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
         Query query = reference.child(getString(R.string.dbname_user_photos)).child(FirebaseAuth.getInstance().getCurrentUser().getUid());
 
         query.addListenerForSingleValueEvent(new ValueEventListener()
@@ -178,11 +183,13 @@ public class ProfileFragment extends Fragment
                         photo.setDate_created(objectMap.get(getString(R.string.field_date_created)).toString());
                         photo.setImage_path(objectMap.get(getString(R.string.field_image_path)).toString());
 
+                        mPhotos.add(photo);
                     }
                     catch(NullPointerException e)
                     {
                         Log.e(TAG, "onDataChange: NullPointerException: " + e.getMessage() );
                     }
+
                 }
 
                 //setup our image grid
@@ -192,13 +199,26 @@ public class ProfileFragment extends Fragment
 
                 ArrayList<String> imgUrls = new ArrayList<String>();
 
-                for(int i = 0; i < photos.size(); i++)
+                for(int i = 0; i < mPhotos.size(); i++)
                 {
-                    imgUrls.add(photos.get(i).getImage_path());
+                    imgUrls.add(mPhotos.get(i).getImage_path());
                 }
 
-                RecyclerImagerAdapter adapter = new RecyclerImagerAdapter(getContext(), photos);
-                recyclerView.setAdapter(adapter);
+                if(imgUrls.size() > 0)
+                {
+                    RecyclerImagerAdapter adapter = new RecyclerImagerAdapter(getActivity(), imgUrls);
+                    GridLayoutManager manager = new GridLayoutManager(getActivity(),1);
+                    manager.setOrientation(LinearLayoutManager.HORIZONTAL);
+//                    LinearLayoutManager manager = new LinearLayoutManager(getActivity());
+                    recyclerView.setLayoutManager(manager);
+                    recyclerView.setHasFixedSize(true);
+                    recyclerView.setAdapter(adapter);
+                }
+                else
+                {
+                    return;
+                }
+
 
 //                gridView.setOnItemClickListener(new AdapterView.OnItemClickListener()
 //                {

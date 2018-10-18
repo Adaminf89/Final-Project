@@ -1,8 +1,6 @@
 package com.example.adaminfiesto.droppit.Detail;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -22,15 +20,16 @@ import com.example.adaminfiesto.droppit.Main.HomeActivity;
 import com.example.adaminfiesto.droppit.R;
 import com.example.adaminfiesto.droppit.Utils.FirebaseMethods;
 import com.example.adaminfiesto.droppit.Utils.UniversalImageLoader;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
-public class DetailFragmentPrivate extends Fragment
+public class DetailFragmentPublic extends Fragment
 {
-
     private static final String TAG = "";
     Photo pData;
     TextView tvCaption;
@@ -38,19 +37,27 @@ public class DetailFragmentPrivate extends Fragment
     TextView tvDistance;
     TextView tvDropTitle;
     ImageView ivDropPhoto;
+    ImageView ivProfilePhoto;
     Button deleteBtn;
     FirebaseUser currentUser;
     private String Uuid;
-    private DatabaseReference myRef;
 
-    //photo data that is needed to be passed.
-    public static DetailFragmentPrivate newInstance(Photo pdata)
+    private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener mAuthListener;
+    private FirebaseDatabase mFirebaseDatabase;
+    private DatabaseReference myRef;
+    private FirebaseMethods mFirebaseMethods;
+
+
+    public static DetailFragmentPublic newInstance(Photo pdata)
     {
 
         Bundle args = new Bundle();
-        DetailFragmentPrivate fragment = new DetailFragmentPrivate();
+        DetailFragmentPublic fragment = new DetailFragmentPublic();
         fragment.setArguments(args);
         args.putParcelable("Photo", pdata);
+
+
         return fragment;
     }
 
@@ -58,20 +65,20 @@ public class DetailFragmentPrivate extends Fragment
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState)
     {
-        View view = inflater.inflate(R.layout.fragment_drop_private, null);
+        View view = inflater.inflate(R.layout.fragment_drop_public, null);
         tvCaption = view.findViewById(R.id.caption);
         tvDate = view.findViewById(R.id.textDate);
         tvDropTitle = view.findViewById(R.id.dropName);
         tvDistance = view.findViewById(R.id.textDistance);
         ivDropPhoto = view.findViewById(R.id.event_image);
+        ivProfilePhoto = view.findViewById(R.id.user_image);
         deleteBtn = view.findViewById(R.id.delete_btn);
-
-        //since were doing this page a bit differencly were bandaiding some already created fb methods
-        myRef = FirebaseDatabase.getInstance().getReference();
-        currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        mFirebaseMethods = new FirebaseMethods(getActivity());
+        currentUser = mAuth.getInstance().getCurrentUser();
         Uuid = currentUser.getUid().toString();
 
-        //user the passed data from arg
+        setupFirebaseAuth();
+
         if(getArguments() != null)
         {
             pData = (Photo) getArguments().getParcelable("Photo");
@@ -104,25 +111,16 @@ public class DetailFragmentPrivate extends Fragment
             }
         });
 
-
-        setProfileWidgets();
-
         return view;
     }
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState)
+    private void setProfileWidgets(UserSettings userSettings)
     {
-        super.onCreate(savedInstanceState);
-        if(getArguments() != null)
-        {
-            pData = (Photo) getArguments().getParcelable("Photo");
-        }
-    }
 
-    private void setProfileWidgets()
-    {
         Log.d(TAG, "setProfileWidgets: is the user nil ");
+        UserAccountSettings settings = userSettings.getSettings();
+
+        UniversalImageLoader.setImage(settings.getProfile_photo(), ivProfilePhoto,null,"");
         UniversalImageLoader.setImage(pData.getImage_path(), ivDropPhoto,null,"");
         tvDropTitle.setText("Drop Details");
         tvCaption.setText(pData.getCaption());
@@ -130,4 +128,69 @@ public class DetailFragmentPrivate extends Fragment
         tvDistance.setText("loading...");
 
     }
+
+    //since we need a specific user data rather than pushing it throughout the app we will just make a call to firebase to get that data
+    //from the user profile node
+    private void setupFirebaseAuth()
+    {
+        Log.d(TAG, "setupFirebaseAuth: setting up firebase auth.");
+        mAuth = FirebaseAuth.getInstance();
+        mFirebaseDatabase = FirebaseDatabase.getInstance();
+        myRef = mFirebaseDatabase.getReference();
+
+        mAuthListener = new FirebaseAuth.AuthStateListener()
+        {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth)
+            {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+
+                if (user != null)
+                {
+                    // User is signed in
+                    Log.d(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
+                } else {
+                    // User is signed out
+                    Log.d(TAG, "onAuthStateChanged:signed_out");
+                }
+                // ...
+            }
+        };
+
+
+        myRef.addValueEventListener(new ValueEventListener()
+        {
+            //GET the snapshot allowing us to READ OR WRITE TO THE DATABASE
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot)
+            {
+                //retrieve user information from the database
+                setProfileWidgets(mFirebaseMethods.getUserSettings(dataSnapshot));
+                //retrieve images for the user in question
+
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError)
+            {
+
+            }
+        });
+    }
+
+    @Override
+    public void onStart()
+    {
+        super.onStart();
+        mAuth.addAuthStateListener(mAuthListener);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mAuthListener != null) {
+            mAuth.removeAuthStateListener(mAuthListener);
+        }
+    }
+
+
 }

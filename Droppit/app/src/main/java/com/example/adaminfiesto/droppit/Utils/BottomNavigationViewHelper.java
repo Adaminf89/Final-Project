@@ -40,6 +40,7 @@ public class BottomNavigationViewHelper
                     case R.id.ic_home:
 
                         Intent intentHome = new Intent(context, HomeActivity.class);
+                        intentHome.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                         context.startActivity(intentHome);
                         callingActivity.overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
                         break;
@@ -47,6 +48,7 @@ public class BottomNavigationViewHelper
                     case R.id.ic_search:
 
                         Intent intentSea = new Intent(context, SearchActivity.class);
+                        intentSea.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                         context.startActivity(intentSea);
                         callingActivity.overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
                         break;
@@ -54,6 +56,7 @@ public class BottomNavigationViewHelper
                     case R.id.ic_account:
 
                         Intent intentAcc = new Intent(context, ProfileActivity.class);
+                        intentAcc.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                         context.startActivity(intentAcc);
                         callingActivity.overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
                         break;

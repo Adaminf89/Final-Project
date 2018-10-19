@@ -2,6 +2,7 @@ package com.example.adaminfiesto.droppit.Detail;
 
 import android.app.FragmentManager;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -12,8 +13,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
+import com.example.adaminfiesto.droppit.DataModels.Like;
 import com.example.adaminfiesto.droppit.DataModels.Photo;
 import com.example.adaminfiesto.droppit.DataModels.UserAccountSettings;
 import com.example.adaminfiesto.droppit.DataModels.UserSettings;
@@ -30,6 +33,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.Locale;
+
 public class DetailFragmentPublic extends Fragment
 {
     private static final String TAG = "";
@@ -40,7 +45,11 @@ public class DetailFragmentPublic extends Fragment
     TextView tvDropTitle;
     ImageView ivDropPhoto;
     ImageView ivProfilePhoto;
+    ImageView ivNavBtn;
     Button deleteBtn;
+    RatingBar rbar;
+    Like thisLike;
+    Integer starRating;
     FirebaseUser currentUser;
 
     private String Uuid;
@@ -73,6 +82,8 @@ public class DetailFragmentPublic extends Fragment
         ivDropPhoto = view.findViewById(R.id.event_image);
         ivProfilePhoto = view.findViewById(R.id.user_image);
         deleteBtn = view.findViewById(R.id.delete_btn);
+        ivNavBtn = view.findViewById(R.id.navigationBtn);
+        rbar = view.findViewById(R.id.ratingBar);
         mFirebaseMethods = new FirebaseMethods(getActivity());
         currentUser = mAuth.getInstance().getCurrentUser();
         Uuid = currentUser.getUid().toString();
@@ -109,9 +120,33 @@ public class DetailFragmentPublic extends Fragment
                 getContext().startActivity(intentHome);
                 getActivity().overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
 
-
             }
         });
+
+        ivNavBtn.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                String uri = String.format(Locale.ENGLISH, "geo:%f,%f", Double.valueOf(pData.getLocation()),
+                        Double.valueOf(pData.getLocationlong()));
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+                startActivity(intent);
+            }
+        });
+
+        rbar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
+            @Override
+            public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser)
+            {
+                starRating = rbar.getNumStars();
+                thisLike = new Like();
+                thisLike.setRating(starRating);
+                thisLike.setUser_id(Uuid);
+                mFirebaseMethods.setLikesPhoto(thisLike, pData.getPhoto_id());
+            }
+        });
+
 
         return view;
     }

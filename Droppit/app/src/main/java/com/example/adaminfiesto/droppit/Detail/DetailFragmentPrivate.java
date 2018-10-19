@@ -16,8 +16,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
+import com.example.adaminfiesto.droppit.DataModels.Like;
 import com.example.adaminfiesto.droppit.DataModels.Photo;
 import com.example.adaminfiesto.droppit.DataModels.UserAccountSettings;
 import com.example.adaminfiesto.droppit.DataModels.UserSettings;
@@ -48,6 +50,9 @@ public class DetailFragmentPrivate extends Fragment
     ImageView ivDropPhoto;
     ImageView ivNavBtn;
     Button deleteBtn;
+    Like thisLike;
+    Integer starRating;
+    RatingBar rbar;
 
     //since were doing this page a bit differencly were bandaiding some already created fb methods
     private FirebaseAuth mAuth;
@@ -80,9 +85,11 @@ public class DetailFragmentPrivate extends Fragment
         ivDropPhoto = view.findViewById(R.id.event_image);
         deleteBtn = view.findViewById(R.id.delete_btn);
         ivNavBtn = view.findViewById(R.id.navigationBtn);
+        rbar = view.findViewById(R.id.ratingBar);
         mFirebaseMethods = new FirebaseMethods(getActivity());
         currentUser = mAuth.getInstance().getCurrentUser();
         Uuid = currentUser.getUid().toString();
+
         setupFirebaseAuth();
         //user the passed data from arg
         if(getArguments() != null)
@@ -100,7 +107,8 @@ public class DetailFragmentPrivate extends Fragment
             @Override
             public void onClick(View v)
             {
-                String uri = String.format(Locale.ENGLISH, "geo:%f,%f", Double.valueOf(pData.getLocation()), Double.valueOf(pData.getLocationlong()));
+                String uri = String.format(Locale.ENGLISH, "geo:%f,%f", Double.valueOf(pData.getLocation()),
+                        Double.valueOf(pData.getLocationlong()));
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
                 startActivity(intent);
             }
@@ -128,6 +136,30 @@ public class DetailFragmentPrivate extends Fragment
             }
         });
 
+        rbar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
+            @Override
+            public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser)
+            {
+                starRating = rbar.getNumStars();
+                thisLike = new Like();
+                thisLike.setRating(starRating);
+                thisLike.setUser_id(Uuid);
+                mFirebaseMethods.setLikesPhoto(thisLike, pData.getPhoto_id());
+            }
+        });
+
+       rbar.setOnClickListener(new View.OnClickListener()
+       {
+           @Override
+           public void onClick(View v)
+           {
+              starRating = rbar.getNumStars();
+              thisLike.setRating(starRating);
+              thisLike.setUser_id(Uuid);
+              mFirebaseMethods.setLikesPhoto(thisLike, pData.getUser_id());
+
+           }
+       });
 
         return view;
     }

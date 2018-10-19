@@ -7,6 +7,8 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.widget.Toast;
+
+import com.example.adaminfiesto.droppit.DataModels.Like;
 import com.example.adaminfiesto.droppit.DataModels.Photo;
 import com.example.adaminfiesto.droppit.DataModels.UserSettings;
 import com.example.adaminfiesto.droppit.Main.HomeActivity;
@@ -116,22 +118,7 @@ public class FirebaseMethods
                 .setValue(username);
     }
 
-    public void delete(String photoId)
-    {
-        Log.d(TAG, "updateEmail: upadting email to: " + photoId);
 
-//        myRef.child(mContext.getString(R.string.dbname_users))
-//                .child(userID)
-//                .child(mContext.getString(R.string.field_email))
-//                .setValue(email);
-
-        myRef.child(mContext.getString(R.string.dbname_user_photos))
-                .child(userID)
-                .child(photoId)
-                .removeValue();
-
-
-    }
 
     public void sendVerificationEmail()
     {
@@ -361,6 +348,14 @@ public class FirebaseMethods
                 .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
                 .child(mContext.getString(R.string.profile_photo))
                 .setValue(url);
+    }
+
+    public void setLikesPhoto(Like Like, String photokey)
+    {
+        myRef.child("Likes")
+                .child(photokey)
+                .child(mContext.getString(R.string.field_likes))
+                .setValue(Like);
     }
 
     //add the photos to the database

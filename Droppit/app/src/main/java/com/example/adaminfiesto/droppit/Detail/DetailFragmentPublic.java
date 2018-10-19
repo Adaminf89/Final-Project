@@ -151,13 +151,19 @@ public class DetailFragmentPublic extends Fragment
         return view;
     }
 
-    private void setProfileWidgets(UserSettings userSettings)
+    private void setProfileWidgets(UserSettings userSettings, DataSnapshot dataSnapshot)
     {
 
         Log.d(TAG, "setProfileWidgets: is the user nil ");
         UserAccountSettings settings = userSettings.getSettings();
 
-        UniversalImageLoader.setImage(settings.getProfile_photo(), ivProfilePhoto,null,"");
+        String DropUserID  =  pData.getUser_id();
+        UserAccountSettings settings2 = mFirebaseMethods.getProfilePhoto(dataSnapshot ,DropUserID);
+
+        String image = settings2.getProfile_photo().toString();
+
+
+        UniversalImageLoader.setImage(image, ivProfilePhoto,null,"");
         UniversalImageLoader.setImage(pData.getImage_path(), ivDropPhoto,null,"");
         tvDropTitle.setText("Drop Details");
         tvCaption.setText(pData.getCaption());
@@ -202,8 +208,9 @@ public class DetailFragmentPublic extends Fragment
             public void onDataChange(DataSnapshot dataSnapshot)
             {
                 //retrieve user information from the database
-                setProfileWidgets(mFirebaseMethods.getUserSettings(dataSnapshot));
+                setProfileWidgets(mFirebaseMethods.getUserSettings(dataSnapshot), dataSnapshot);
                 //retrieve images for the user in question
+
 
             }
             @Override

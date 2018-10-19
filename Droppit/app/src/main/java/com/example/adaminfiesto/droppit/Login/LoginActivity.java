@@ -22,6 +22,16 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+
+/*
+Ref Links
+https://developer.android.com/guide/components/processes-and-threads
+https://stackoverflow.com/questions/14963776/get-users-by-name-property-using-firebase
+https://stackoverflow.com/questions/44286535/how-to-get-all-users-data-from-firebase-database-in-custom-listview-in-android
+https://www.youtube.com/watch?v=Vyqz_-sJGFk&list=PLgCYzUzKIBE-4SBxHzntuDDEREffjyoUj
+https://github.com/gdpremium/GD-Premium
+libs to be added later
+ * */
 public class LoginActivity extends AppCompatActivity
 {
     private static final String TAG = "LoginActivity";

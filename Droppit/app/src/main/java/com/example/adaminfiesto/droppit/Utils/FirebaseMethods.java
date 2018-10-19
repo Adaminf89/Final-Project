@@ -23,15 +23,21 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 
 public class FirebaseMethods
@@ -117,7 +123,6 @@ public class FirebaseMethods
                 .child(mContext.getString(R.string.field_username))
                 .setValue(username);
     }
-
 
 
     public void sendVerificationEmail()
@@ -308,6 +313,7 @@ public class FirebaseMethods
                 Log.d(TAG, "getUserAccountSettings: retrieved users information: " + user.toString());
             }
         }
+
         //So that we dont run this twice we will return both user settings and acct settings
         return new UserSettings(user, settings);
 
@@ -339,6 +345,22 @@ public class FirebaseMethods
 
     }
 
+    public UserAccountSettings getProfilePhoto(DataSnapshot dataSnapshot, String id)
+    {
+
+        UserAccountSettings settings  = new UserAccountSettings();
+        String temp;
+
+        for(DataSnapshot ds: dataSnapshot.getChildren())
+        {
+            if(ds.getKey().equals(mContext.getString(R.string.dbname_user_account_settings)))
+            {
+                settings.setProfile_photo(ds.child(id).getValue(UserAccountSettings.class).getProfile_photo());
+            }
+        }
+
+        return settings;
+    }
 
     private void setProfilePhoto(String url)
     {

@@ -50,6 +50,7 @@ public class DetailActivity extends AppCompatActivity
     private ViewPager mViewPager;
     private int imageCount = 0;
 
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState)
     {

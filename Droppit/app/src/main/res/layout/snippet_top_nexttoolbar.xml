@@ -4,6 +4,7 @@
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="50dp"
+        android:background="@color/backBlue"
         >
 
         <android.support.v7.widget.Toolbar
@@ -31,7 +32,7 @@
                     android:layout_alignParentRight="true"
                     android:layout_marginRight="15dp"
                     android:textSize="20sp"
-                    android:textColor="@color/link_blue"
+                    android:textColor="@color/offWhite"
                     android:layout_centerVertical="true"
                     android:id="@+id/tvShare"
                     />

@@ -45,6 +45,7 @@
         <activity android:name=".UserProfile.AccountSettingActivity"/>
         <activity android:name=".Main.NextActivity"/>
         <activity android:name=".Detail.DetailActivity"/>
+        <activity android:name=".AR.ARActivity"/>
         <meta-data android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version"/>
 

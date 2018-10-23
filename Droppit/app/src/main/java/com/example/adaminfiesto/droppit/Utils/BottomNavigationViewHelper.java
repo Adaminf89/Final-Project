@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.view.MenuItem;
 
+import com.example.adaminfiesto.droppit.AR.ARActivity;
 import com.example.adaminfiesto.droppit.Main.HomeActivity;
 import com.example.adaminfiesto.droppit.R;
 import com.example.adaminfiesto.droppit.Search.SearchActivity;
@@ -58,6 +59,20 @@ public class BottomNavigationViewHelper
                         Intent intentAcc = new Intent(context, ProfileActivity.class);
                         intentAcc.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                         context.startActivity(intentAcc);
+                        callingActivity.overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+                        break;
+                    case R.id.ic_feed:
+
+                        Intent intentFeed = new Intent(context, ARActivity.class);
+                        intentFeed.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        context.startActivity(intentFeed);
+                        callingActivity.overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+                        break;
+                    case R.id.ic_vr:
+
+                        Intent intentAR = new Intent(context, ARActivity.class);
+                        intentAR.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        context.startActivity(intentAR);
                         callingActivity.overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
                         break;
                 }

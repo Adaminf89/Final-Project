@@ -35,6 +35,8 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.Locale;
 
+import de.hdodenhof.circleimageview.CircleImageView;
+
 public class DetailFragmentPublic extends Fragment
 {
     private static final String TAG = "";
@@ -43,8 +45,8 @@ public class DetailFragmentPublic extends Fragment
     TextView tvDate;
     TextView tvDistance;
     TextView tvDropTitle;
-    ImageView ivDropPhoto;
-    ImageView ivProfilePhoto;
+    CircleImageView ivDropPhoto;
+    CircleImageView ivProfilePhoto;
     ImageView ivNavBtn;
     Button deleteBtn;
     RatingBar rbar;
@@ -79,8 +81,8 @@ public class DetailFragmentPublic extends Fragment
         tvDate = view.findViewById(R.id.textDate);
         tvDropTitle = view.findViewById(R.id.dropName);
         tvDistance = view.findViewById(R.id.textDistance);
-        ivDropPhoto = view.findViewById(R.id.event_image);
-        ivProfilePhoto = view.findViewById(R.id.user_image);
+        ivDropPhoto = (CircleImageView) view.findViewById(R.id.event_image);
+        ivProfilePhoto = (CircleImageView) view.findViewById(R.id.user_image);
         deleteBtn = view.findViewById(R.id.delete_btn);
         ivNavBtn = view.findViewById(R.id.navigationBtn);
         rbar = view.findViewById(R.id.ratingBar);

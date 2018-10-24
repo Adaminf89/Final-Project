@@ -9,6 +9,7 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
@@ -23,9 +24,11 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
+import com.example.adaminfiesto.droppit.AR.ARActivity;
 import com.example.adaminfiesto.droppit.DataModels.Photo;
 import com.example.adaminfiesto.droppit.Login.LoginActivity;
 import com.example.adaminfiesto.droppit.R;
+import com.example.adaminfiesto.droppit.Search.SearchActivity;
 import com.example.adaminfiesto.droppit.UserProfile.ProfileActivity;
 import com.example.adaminfiesto.droppit.UserProfile.ProfileFragment;
 import com.example.adaminfiesto.droppit.Utils.BottomNavigationViewHelper;
@@ -90,6 +93,8 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
         initImageLoader();
         getUserPhoto();
 
+        Log.i(TAG, "....: map should be here ");
+
         if(checkPermissionsArray(Permissions.PERMISSIONS))
         {
            getUserPhoto();
@@ -119,6 +124,7 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
             }
         });
     }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
@@ -180,24 +186,6 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
         transaction.addToBackStack("FragmentMap");
         transaction.commitAllowingStateLoss();
     }
-
-    //top tab fragments that connect to the view pager
-//    private void setupViewPager()
-//    {
-//        SectionsPagerAdapter adapter = new SectionsPagerAdapter(getSupportFragmentManager());
-//        adapter.addFragment(new FragmentAR()); //index 0
-//        adapter.addFragment(new FragmentMap()); //index 1
-//        adapter.addFragment(new EventFragment());//index 2
-//        mViewPager.setAdapter(adapter);
-//
-//        TabLayout tabLayout = findViewById(R.id.tabs);
-//        tabLayout.setupWithViewPager(mViewPager);
-//
-//
-//        tabLayout.getTabAt(0).setText("AR");
-//        tabLayout.getTabAt(1).setText("Map");
-//        tabLayout.getTabAt(2).setText("Event");
-//    }
 
     private void getUserPhoto()
     {
@@ -383,6 +371,14 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
 
             }
         };
+    }
+
+    @Override
+    protected void onPause()
+    {
+        super.onPause();
+        mPhotos.clear();
+        mUsers.clear();
     }
 
     @Override

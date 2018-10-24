@@ -64,7 +64,6 @@ public class DetailFragmentPublic extends Fragment
 
     public static DetailFragmentPublic newInstance(Photo pdata)
     {
-
         Bundle args = new Bundle();
         DetailFragmentPublic fragment = new DetailFragmentPublic();
         fragment.setArguments(args);
@@ -160,10 +159,10 @@ public class DetailFragmentPublic extends Fragment
         UserAccountSettings settings = userSettings.getSettings();
 
         String DropUserID  =  pData.getUser_id();
-        UserAccountSettings settings2 = mFirebaseMethods.getProfilePhoto(dataSnapshot ,DropUserID);
 
+        //getting the users drop photo
+        UserAccountSettings settings2 = mFirebaseMethods.getProfilePhoto(dataSnapshot, DropUserID);
         String image = settings2.getProfile_photo().toString();
-
 
         UniversalImageLoader.setImage(image, ivProfilePhoto,null,"");
         UniversalImageLoader.setImage(pData.getImage_path(), ivDropPhoto,null,"");

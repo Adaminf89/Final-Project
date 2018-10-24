@@ -12,9 +12,19 @@
         android:layout_height="match_parent"
         android:id="@+id/container">
 
-
+        <fragment android:name="com.google.ar.sceneform.ux.ArFragment"
+            android:id="@+id/ux_fragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            />
 
     </FrameLayout>
+
+    <Button
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:id="@+id/arButton"
+        />
 
     <include layout="@layout/layout_bottom_nav_view"/>
 </RelativeLayout>

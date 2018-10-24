@@ -13,8 +13,6 @@
             android:background="@color/backBlue"
             app:itemIconTint="@color/offWhite"
             app:menu="@menu/bottom_nav_menu">
-
-
         </com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx>
 
     </RelativeLayout>

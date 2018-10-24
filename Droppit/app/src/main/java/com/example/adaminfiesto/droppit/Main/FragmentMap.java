@@ -391,7 +391,6 @@ public class FragmentMap extends Fragment implements
         super.onStart();
         if (gMapView != null)
         {
-
             gMapView.onStart();
         }
     }
@@ -405,7 +404,6 @@ public class FragmentMap extends Fragment implements
         {
             gMapView.onStop();
         }
-
 
     }
 

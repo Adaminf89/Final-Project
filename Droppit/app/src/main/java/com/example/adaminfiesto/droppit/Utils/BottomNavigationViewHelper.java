@@ -44,6 +44,7 @@ public class BottomNavigationViewHelper
                         intentHome.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                         context.startActivity(intentHome);
                         callingActivity.overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+
                         break;
 
                     case R.id.ic_search:
@@ -57,7 +58,7 @@ public class BottomNavigationViewHelper
                     case R.id.ic_account:
 
                         Intent intentAcc = new Intent(context, ProfileActivity.class);
-                        intentAcc.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        //intentAcc.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                         context.startActivity(intentAcc);
                         callingActivity.overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
                         break;

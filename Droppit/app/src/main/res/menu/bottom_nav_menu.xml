@@ -2,18 +2,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/ic_vr"
-        android:icon="@drawable/ic_vr"
-        android:title=""
-        >
-    </item>
-    <item
-        android:id="@+id/ic_feed"
-        android:icon="@drawable/ic_feed"
-        android:title=""
-        >
-    </item>
-    <item
         android:id="@+id/ic_home"
         android:icon="@drawable/ic_location_city_black_24dp"
         android:title=""
@@ -31,5 +19,21 @@
         android:icon="@drawable/ic_account_circle_black_24dp"
         android:title="">
     </item>
+
+    <item
+        android:id="@+id/ic_vr"
+        android:icon="@drawable/ic_vr"
+        android:title=""
+        >
+    </item>
+
+    <item
+        android:id="@+id/ic_feed"
+        android:icon="@drawable/ic_feed"
+        android:title=""
+        >
+    </item>
+
+
 
 </menu>

@@ -22,9 +22,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 
 import com.example.adaminfiesto.droppit.AR.ARActivity;
+import com.example.adaminfiesto.droppit.DataModels.Comment;
 import com.example.adaminfiesto.droppit.DataModels.Photo;
 import com.example.adaminfiesto.droppit.Login.LoginActivity;
 import com.example.adaminfiesto.droppit.R;
@@ -74,7 +76,7 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
     private LatLng dalocation;
     private ArrayList<String> mUsers;
     private ArrayList<Photo> mPhotos;
-
+    ProgressBar progressBar;
 
 
     @Override
@@ -86,12 +88,16 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
         mViewPager = findViewById(R.id.viewpager_container);
         mRelativeLayout = findViewById(R.id.relLayoutParent);
         fab = findViewById(R.id.floatingActionButton);
+        progressBar = findViewById(R.id.progressBarMap);
         mUsers = new ArrayList<>();
         mPhotos = new ArrayList<>();
         setupBottomNavigationView();
         setupFirebaseAuth();
         initImageLoader();
+
         getUserPhoto();
+
+
 
         Log.i(TAG, "....: map should be here ");
 
@@ -244,28 +250,33 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
                         Map<String, Object> objectMap = (HashMap<String, Object>) singleSnapshot.getValue();
 
                         photo.setCaption(objectMap.get(getString(R.string.field_caption)).toString());
-                        photo.setTags(objectMap.get(getString(R.string.field_tags)).toString());
+//                        photo.setTags(objectMap.get(getString(R.string.field_tags)).toString());
                         photo.setPhoto_id(objectMap.get(getString(R.string.field_photo_id)).toString());
-                        photo.setUser_id(objectMap.get(getString(R.string.field_user_id)).toString());
+//                        photo.setUser_id(objectMap.get(getString(R.string.field_user_id)).toString());
                         photo.setLocation(objectMap.get(getString(R.string.field_location)).toString());
                         photo.setLocationlong(objectMap.get(getString(R.string.field_locationlong)).toString());
-                        photo.setmPrivate(objectMap.get(getString(R.string.field_date_private)).toString());
-                        photo.setDate_created(objectMap.get(getString(R.string.field_date_created)).toString());
-                        photo.setImage_path(objectMap.get(getString(R.string.field_image_path)).toString());
+//                        photo.setmPrivate(objectMap.get(getString(R.string.field_date_private)).toString());
+//                        photo.setDate_created(objectMap.get(getString(R.string.field_date_created)).toString());
+//                        photo.setImage_path(objectMap.get(getString(R.string.field_image_path)).toString());
 
+//                        ArrayList<Comment> comments = new ArrayList<Comment>();
+//
+//                        for (DataSnapshot dSnapshot : singleSnapshot.child(getString(R.string.field_comments)).getChildren())
+//                        {
+//                            Comment comment = new Comment();
+//                            comment.setUser_id(dSnapshot.getValue(Comment.class).getUser_id());
+//                            comment.setComment(dSnapshot.getValue(Comment.class).getComment());
+//                            comment.setDate_created(dSnapshot.getValue(Comment.class).getDate_created());
+//                            comments.add(comment);
+//                        }
+//
+//                        photo.setComments(comments);
                         mPhotos.add(photo);
 
                     }
 
-                    Runnable r = new Runnable()
-                    {
-                        @Override
-                        public void run()
-                        {
-                            setupViewPager();
-                        }
-                    };
-                    r.run();
+                    setupViewPager();
+
                 }
 
                 @Override
@@ -356,7 +367,6 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth)
             {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
-
                 //check if the user is logged in
                 checkCurrentUser(user);
 
@@ -377,8 +387,8 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
     protected void onPause()
     {
         super.onPause();
-        mPhotos.clear();
-        mUsers.clear();
+//        mPhotos.clear();
+//        mUsers.clear();
     }
 
     @Override
@@ -393,11 +403,19 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
     public void onStop()
     {
         super.onStop();
-
+        mPhotos.clear();
+        mUsers.clear();
         if (mAuthListener != null)
         {
             mAuth.removeAuthStateListener(mAuthListener);
+            progressBar.setVisibility(View.GONE);
         }
+    }
+
+    @Override
+    protected void onDestroy()
+    {
+        super.onDestroy();
     }
 
     //TODO:Reload the fragment
@@ -408,8 +426,6 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
         getUserPhoto();
         Log.d(TAG, "onResume: " + dalocation);
     }
-
-
 
     @Override
     public void location(LatLng lat) {

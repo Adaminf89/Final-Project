@@ -22,14 +22,21 @@ public class RecyclerImagerAdapter extends RecyclerView.Adapter<RecyclerImagerAd
 {
     private ArrayList<String> data;
     private Context mContext;
+    private RecyclerViewClickListener itemListener;
 
-    public RecyclerImagerAdapter(Context context, ArrayList<String> data)
+    public RecyclerImagerAdapter(Context context, ArrayList<String> data, RecyclerViewClickListener itemListener)
     {
         this.data = data;
         this.mContext = context;
+        this.itemListener = itemListener;
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder
+    public interface RecyclerViewClickListener
+    {
+        public void recyclerViewListClicked(View v, int position);
+    }
+
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener
     {
 
         private ImageView image;
@@ -40,6 +47,13 @@ public class RecyclerImagerAdapter extends RecyclerView.Adapter<RecyclerImagerAd
             super(itemView);
             image = (ImageView) itemView.findViewById(R.id.gridImageView);
             progressBar = itemView.findViewById(R.id.gridImageProgressbar);
+            itemView.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v)
+        {
+            itemListener.recyclerViewListClicked(v, this.getLayoutPosition());
         }
 
         public ProgressBar getProgressBar() {

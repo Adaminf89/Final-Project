@@ -26,7 +26,6 @@ public class ProfileActivity extends AppCompatActivity
     private static final int HOME_FRAGMENT = 1;
     private static final int VERIFY_PERMISSIONS_REQUEST = 1;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -60,7 +59,7 @@ public class ProfileActivity extends AppCompatActivity
                     ProfileFragment fragment = new ProfileFragment();
                     FragmentTransaction transaction = ProfileActivity.this.getSupportFragmentManager().beginTransaction();
                     transaction.replace(R.id.container, fragment);
-                    transaction.addToBackStack(getString(R.string.profile_fragment));
+//                    transaction.addToBackStack(getString(R.string.profile_fragment));
                     transaction.commit();
                 }
             }
@@ -76,7 +75,7 @@ public class ProfileActivity extends AppCompatActivity
             ProfileFragment fragment = new ProfileFragment();
             FragmentTransaction transaction = ProfileActivity.this.getSupportFragmentManager().beginTransaction();
             transaction.replace(R.id.container, fragment);
-            transaction.addToBackStack(getString(R.string.profile_fragment));
+//            transaction.addToBackStack(getString(R.string.profile_fragment));
             transaction.commit();
         }
 

@@ -2,6 +2,7 @@ package com.example.adaminfiesto.droppit.UserProfile;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -28,6 +29,7 @@ import android.widget.TextView;
 import com.example.adaminfiesto.droppit.DataModels.Photo;
 import com.example.adaminfiesto.droppit.DataModels.UserAccountSettings;
 import com.example.adaminfiesto.droppit.DataModels.UserSettings;
+import com.example.adaminfiesto.droppit.Detail.DetailActivity;
 import com.example.adaminfiesto.droppit.R;
 import com.example.adaminfiesto.droppit.Utils.BottomNavigationViewHelper;
 import com.example.adaminfiesto.droppit.Utils.FirebaseMethods;
@@ -50,7 +52,7 @@ import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-public class ProfileFragment extends Fragment
+public class ProfileFragment extends Fragment implements RecyclerImagerAdapter.RecyclerViewClickListener
 {
     private String TAG;
     private static final int ACTIVITY_NUM = 2;
@@ -72,11 +74,14 @@ public class ProfileFragment extends Fragment
     private BottomNavigationViewEx bottomNavigationView;
     private Context mContext;
     private ArrayList<Photo> mPhotos;
+    ArrayList<String> imgUrls;
+    private Photo mPhoto;
     //TODO:get username, post, descriptions from firebase
     //todo: population the recycler view
 
     public ProfileFragment()
     {
+
     }
 
     @Nullable
@@ -96,7 +101,7 @@ public class ProfileFragment extends Fragment
         recyclerView = view.findViewById(R.id.recyclerview);
         mFirebaseMethods = new FirebaseMethods(getActivity());
         mPhotos = new ArrayList<>();
-
+        imgUrls = new ArrayList<>();
         setupToolbar();
         setupFirebaseAuth();
         setupBottomNavigationView();
@@ -123,6 +128,22 @@ public class ProfileFragment extends Fragment
         return view;
     }
 
+
+    @Override
+    public void recyclerViewListClicked(View v, int position)
+    {
+        //send this uuid.
+        String photoID = mPhotos.get(position).getPhoto_id();
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("photoID", Context.MODE_PRIVATE);
+        SharedPreferences.Editor ed = sharedPreferences.edit();
+        ed.putString("photo", photoID);
+        ed.putInt("checker",1);
+        ed.apply();
+
+        Intent detailActivity = new Intent(getActivity(), DetailActivity.class);
+        detailActivity.putExtra(String.valueOf(R.string.to_detail), "detail");
+        startActivity(detailActivity);
+    }
 
     private void setProfileWidgets(UserSettings userSettings)
     {
@@ -195,37 +216,15 @@ public class ProfileFragment extends Fragment
 
                 }
 
-                ArrayList<String> imgUrls = new ArrayList<String>();
+                imgUrls = new ArrayList<String>();
 
                 for(int i = 0; i < mPhotos.size(); i++)
                 {
                     imgUrls.add(mPhotos.get(i).getImage_path());
+                   // mPhoto = mPhoto.g
                 }
 
-                if(imgUrls.size() > 0)
-                {
-                    RecyclerImagerAdapter adapter = new RecyclerImagerAdapter(getActivity(), imgUrls);
-                    GridLayoutManager manager = new GridLayoutManager(getActivity(),1);
-                    manager.setOrientation(LinearLayoutManager.HORIZONTAL);
-//                    LinearLayoutManager manager = new LinearLayoutManager(getActivity());
-                    recyclerView.setLayoutManager(manager);
-                    recyclerView.setHasFixedSize(true);
-                    recyclerView.setAdapter(adapter);
-                }
-                else
-                {
-                    return;
-                }
-
-
-//                gridView.setOnItemClickListener(new AdapterView.OnItemClickListener()
-//                {
-//                    @Override
-//                    public void onItemClick(AdapterView<?> parent, View view, int position, long id)
-//                    {
-//                        mOnGridImageSelectedListener.onGridImageSelected(photos.get(position), ACTIVITY_NUM);
-//                    }
-//                });
+                setupRView();
             }
 
             @Override
@@ -234,6 +233,26 @@ public class ProfileFragment extends Fragment
                 Log.d(TAG, "onCancelled: query cancelled.");
             }
         });
+
+
+    }
+
+
+    public void setupRView()
+    {
+        if(imgUrls.size() > 0)
+        {
+            RecyclerImagerAdapter adapter = new RecyclerImagerAdapter(getActivity(), imgUrls,this);
+            GridLayoutManager manager = new GridLayoutManager(getActivity(),1);
+            manager.setOrientation(LinearLayoutManager.HORIZONTAL);
+            recyclerView.setLayoutManager(manager);
+            recyclerView.setHasFixedSize(true);
+            recyclerView.setAdapter(adapter);
+        }
+        else
+        {
+            return;
+        }
     }
 
     @Override

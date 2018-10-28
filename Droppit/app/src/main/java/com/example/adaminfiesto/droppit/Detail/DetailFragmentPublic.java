@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +16,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.adaminfiesto.droppit.DataModels.Like;
 import com.example.adaminfiesto.droppit.DataModels.Photo;
@@ -33,7 +35,12 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -45,13 +52,19 @@ public class DetailFragmentPublic extends Fragment
     TextView tvDate;
     TextView tvDistance;
     TextView tvDropTitle;
+    String userRating;
     CircleImageView ivDropPhoto;
     CircleImageView ivProfilePhoto;
     ImageView ivNavBtn;
     Button deleteBtn;
+    Button addBtn;
+    Button editBtn;
+    Button commentBtn;
     RatingBar rbar;
     Like thisLike;
+    Like loadedLike;
     Integer starRating;
+    private int checker = 0;
     FirebaseUser currentUser;
 
     private String Uuid;
@@ -62,11 +75,12 @@ public class DetailFragmentPublic extends Fragment
     private FirebaseMethods mFirebaseMethods;
 
 
-    public static DetailFragmentPublic newInstance(Photo pdata)
+    public static DetailFragmentPublic newInstance(Photo pdata, Integer checker)
     {
         Bundle args = new Bundle();
         DetailFragmentPublic fragment = new DetailFragmentPublic();
         fragment.setArguments(args);
+        args.putInt("c",checker);
         args.putParcelable("Photo", pdata);
         return fragment;
     }
@@ -81,25 +95,55 @@ public class DetailFragmentPublic extends Fragment
         tvDropTitle = view.findViewById(R.id.dropName);
         tvDistance = view.findViewById(R.id.textDistance);
         ivDropPhoto = (CircleImageView) view.findViewById(R.id.event_image);
-        ivProfilePhoto = (CircleImageView) view.findViewById(R.id.user_image);
+        ivProfilePhoto = (CircleImageView) view.findViewById(R.id.images_public);
         deleteBtn = view.findViewById(R.id.delete_btn);
+        addBtn = view.findViewById(R.id.add_btn);
+        editBtn = view.findViewById(R.id.edit_btn);
+        commentBtn = view.findViewById(R.id.comment_btn);
         ivNavBtn = view.findViewById(R.id.navigationBtn);
         rbar = view.findViewById(R.id.ratingBar);
         mFirebaseMethods = new FirebaseMethods(getActivity());
         currentUser = mAuth.getInstance().getCurrentUser();
         Uuid = currentUser.getUid().toString();
+        loadedLike = new Like();
 
         setupFirebaseAuth();
+
 
         if(getArguments() != null)
         {
             pData = (Photo) getArguments().getParcelable("Photo");
+            checker = getArguments().getInt("c");
+
+            if(checker == 1)
+            {
+                addBtn.setVisibility(View.GONE);
+                rbar.setVisibility(View.GONE);
+            }
         }
+
         //show the btn if this drop matches the user id
         if(pData.getUser_id().equals(Uuid))
         {
             deleteBtn.setVisibility(View.VISIBLE);
+            editBtn.setVisibility(View.VISIBLE);
+            addBtn.setVisibility(View.VISIBLE);
         }
+
+        commentBtn.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+
+                Intent intentCom = new Intent(getContext(), CommentActivity.class);
+                intentCom.putExtra("ComData", pData);
+                intentCom.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                getContext().startActivity(intentCom);
+                getActivity().overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+
+            }
+        });
 
         deleteBtn.setOnClickListener(new View.OnClickListener()
         {
@@ -124,15 +168,24 @@ public class DetailFragmentPublic extends Fragment
             }
         });
 
+        addBtn.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+               mFirebaseMethods.collectPhoto(pData);
+            }
+        });
+
         ivNavBtn.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View v)
             {
-                String uri = String.format(Locale.ENGLISH, "geo:%f,%f", Double.valueOf(pData.getLocation()),
-                        Double.valueOf(pData.getLocationlong()));
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
-                startActivity(intent);
+                Uri gmmIntentUri = Uri.parse("google.navigation:q="+pData.getLocation()+","+pData.getLocationlong());
+                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                mapIntent.setPackage("com.google.android.apps.maps");
+                startActivity(mapIntent);
             }
         });
 
@@ -141,16 +194,44 @@ public class DetailFragmentPublic extends Fragment
             public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser)
             {
                 starRating = rbar.getNumStars();
+                //set this drops rating buy uuid
+                double d = rating;
                 thisLike = new Like();
-                thisLike.setRating(starRating);
+                thisLike.setRating(d);
                 thisLike.setUser_id(Uuid);
                 mFirebaseMethods.setLikesPhoto(thisLike, pData.getPhoto_id());
             }
         });
 
+        getLikes(pData.getPhoto_id());
 
         return view;
     }
+
+    public String getTimestampDifference(Photo photo)
+    {
+        Log.d(TAG, "getTimestampDifference: getting timestamp difference.");
+
+        String difference = "";
+        Calendar c = Calendar.getInstance();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
+        sdf.setTimeZone(TimeZone.getTimeZone("US/Eastern"));//google 'android list of timezones'
+        Date today = c.getTime();
+        sdf.format(today);
+        Date timestamp;
+
+        final String photoTimestamp = photo.getDate_created();
+        try
+        {
+            timestamp = sdf.parse(photoTimestamp);
+            difference = String.valueOf(Math.round(((today.getTime() - timestamp.getTime()) / 1000 / 60 / 60 / 24 )));
+        }catch (ParseException e){
+            Log.e(TAG, "getTimestampDifference: ParseException: " + e.getMessage() );
+            difference = "0";
+        }
+        return difference +" days ago";
+    }
+
 
     private void setProfileWidgets(UserSettings userSettings, DataSnapshot dataSnapshot)
     {
@@ -159,7 +240,6 @@ public class DetailFragmentPublic extends Fragment
         UserAccountSettings settings = userSettings.getSettings();
 
         String DropUserID  =  pData.getUser_id();
-
         //getting the users drop photo
         UserAccountSettings settings2 = mFirebaseMethods.getProfilePhoto(dataSnapshot, DropUserID);
         String image = settings2.getProfile_photo().toString();
@@ -168,9 +248,36 @@ public class DetailFragmentPublic extends Fragment
         UniversalImageLoader.setImage(pData.getImage_path(), ivDropPhoto,null,"");
         tvDropTitle.setText("Drop Details");
         tvCaption.setText(pData.getCaption());
-        tvDate.setText(pData.getDate_created());
-        tvDistance.setText("loading...");
+        tvDate.setText(getTimestampDifference(pData));
+        //tvDistance.setText("loading...");
+        tvDistance.setVisibility(View.GONE);
 
+    }
+
+    public void getLikes(String photoID)
+    {
+
+        myRef.child("Likes").child(pData.getUser_id()).child(photoID).addValueEventListener(new ValueEventListener()
+        {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot)
+            {
+                loadedLike = dataSnapshot.getValue(Like.class);
+
+                if(loadedLike == null)
+                {
+                    return;
+                }
+                rbar.setRating(Float.valueOf(loadedLike.getRating().toString()));
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError)
+            {
+
+            }
+
+        });
     }
 
     //since we need a specific user data rather than pushing it throughout the app we will just make a call to firebase to get that data
@@ -189,6 +296,7 @@ public class DetailFragmentPublic extends Fragment
             {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
 
+
                 if (user != null)
                 {
                     // User is signed in
@@ -201,7 +309,6 @@ public class DetailFragmentPublic extends Fragment
             }
         };
 
-
         myRef.addValueEventListener(new ValueEventListener()
         {
             //GET the snapshot allowing us to READ OR WRITE TO THE DATABASE
@@ -210,9 +317,6 @@ public class DetailFragmentPublic extends Fragment
             {
                 //retrieve user information from the database
                 setProfileWidgets(mFirebaseMethods.getUserSettings(dataSnapshot), dataSnapshot);
-                //retrieve images for the user in question
-
-
             }
             @Override
             public void onCancelled(DatabaseError databaseError)

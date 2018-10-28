@@ -8,6 +8,7 @@ import android.support.design.widget.BottomNavigationView;
 import android.view.MenuItem;
 
 import com.example.adaminfiesto.droppit.AR.ARActivity;
+import com.example.adaminfiesto.droppit.Feed.FeedActivity;
 import com.example.adaminfiesto.droppit.Main.HomeActivity;
 import com.example.adaminfiesto.droppit.R;
 import com.example.adaminfiesto.droppit.Search.SearchActivity;
@@ -64,7 +65,7 @@ public class BottomNavigationViewHelper
                         break;
                     case R.id.ic_feed:
 
-                        Intent intentFeed = new Intent(context, ARActivity.class);
+                        Intent intentFeed = new Intent(context, FeedActivity.class);
                         intentFeed.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                         context.startActivity(intentFeed);
                         callingActivity.overridePendingTransition(R.anim.fade_in, R.anim.fade_out);

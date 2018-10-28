@@ -214,8 +214,7 @@ public class FirebaseMethods
     public int getImageCount(DataSnapshot dataSnapshot)
     {
         int count = 0;
-        for(DataSnapshot ds: dataSnapshot.child(mContext.getString(R.string.dbname_user_photos))
-                .child(FirebaseAuth.getInstance().getCurrentUser().getUid()).getChildren())
+        for(DataSnapshot ds: dataSnapshot.child(mContext.getString(R.string.dbname_user_photos)).child(FirebaseAuth.getInstance().getCurrentUser().getUid()).getChildren())
         {
             count++;
         }
@@ -372,13 +371,35 @@ public class FirebaseMethods
                 .setValue(url);
     }
 
+    public void collectPhoto(Photo cphoto)
+    {
+        Photo photo = new Photo();
+
+        photo.setCaption(cphoto.getCaption());
+        photo.setDate_created(cphoto.getDate_created());
+        photo.setImage_path(cphoto.getImage_path());
+        photo.setLocation(cphoto.getLocation());
+        photo.setLocationlong(cphoto.getLocationlong());
+        photo.setmPrivate(cphoto.getmPrivate());
+        photo.setUser_id(cphoto.getUser_id());
+        photo.setPhoto_id(cphoto.getPhoto_id());
+        photo.setTags(cphoto.getTags());
+        photo.setUser_id(cphoto.getUser_id());
+
+        myRef.child(mContext.getString(R.string.dbname_user_photos)).
+                child(FirebaseAuth.getInstance().getCurrentUser().getUid()).
+                child(cphoto.getPhoto_id()).setValue(photo);
+    }
+
     public void setLikesPhoto(Like Like, String photokey)
     {
         myRef.child("Likes")
+                .child(userID)
                 .child(photokey)
-                .child(mContext.getString(R.string.field_likes))
                 .setValue(Like);
     }
+
+
 
     //add the photos to the database
     public void uploadNewPhoto(String photoType, final String caption, final String privatedata, final int count, final String imgUrl, Bitmap bm, final String location, final String locationlong)
@@ -494,13 +515,10 @@ public class FirebaseMethods
                             Uri firebaseurl = uri;
                             setProfilePhoto(firebaseurl.toString());
 
-                            //TODO:implement navback
-                            //navigate to the main feed so the user can see their photo
-//                    Intent intent = new Intent(mContext, HomeActivity.class);
-//                    //intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-//                    mContext.startActivity(intent);
+
                         }
                     });
+
                 }
             }).addOnFailureListener(new OnFailureListener()
             {
@@ -523,6 +541,12 @@ public class FirebaseMethods
                         Toast.makeText(mContext, "photo upload progress: " + String.format("%.0f", progress) + "%", Toast.LENGTH_SHORT).show();
                         mPhotoUploadProgress = progress;
                     }
+
+                    //TODO:implement navback
+                    //navigate to the main feed so the user can see their photo
+                    Intent intent = new Intent(mContext, HomeActivity.class);
+                    //intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    mContext.startActivity(intent);
 
                     Log.d(TAG, "onProgress: upload progress: " + progress + "% done");
                 }

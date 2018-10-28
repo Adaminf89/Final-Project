@@ -69,8 +69,6 @@ public class NextActivity extends AppCompatActivity
         isPrivate = "false";
         mCheckBox.setText("This is Private");
 
-//      LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, new IntentFilter(String.valueOf(R.string.intent_location)));
-
         mCheckBox.setOnClickListener(new View.OnClickListener()
         {
             @Override
@@ -91,6 +89,7 @@ public class NextActivity extends AppCompatActivity
 
         getSharedData();
         setupFirebaseAuth();
+
         final TextView share = (TextView) findViewById(R.id.tvShare);
 
         share.setOnClickListener(new View.OnClickListener()

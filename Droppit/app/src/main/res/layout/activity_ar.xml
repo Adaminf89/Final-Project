@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/backgroundBlue">
-
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="@color/backgroundBlue"
+    tools:context=".AR.ARActivity">
 
     <FrameLayout
 
@@ -12,19 +12,14 @@
         android:layout_height="match_parent"
         android:id="@+id/container">
 
-        <fragment android:name="com.google.ar.sceneform.ux.ArFragment"
-            android:id="@+id/ux_fragment"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+        <com.google.ar.sceneform.ArSceneView
+            android:id="@+id/arFrameLayout"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
             />
 
     </FrameLayout>
 
-    <Button
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:id="@+id/arButton"
-        />
 
     <include layout="@layout/layout_bottom_nav_view"/>
 </RelativeLayout>

@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
+import android.os.Parcelable;
 import android.support.v4.app.ActivityCompat;
 
 import android.location.Location;
@@ -19,12 +20,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.example.adaminfiesto.droppit.DataModels.Photo;
 import com.example.adaminfiesto.droppit.Detail.DetailActivity;
 import com.example.adaminfiesto.droppit.R;
 import com.example.adaminfiesto.droppit.Utils.FirebaseMethods;
-import com.example.adaminfiesto.droppit.Utils.UniversalImageLoader;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
@@ -34,6 +35,7 @@ import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -48,6 +50,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static android.content.Context.LOCATION_SERVICE;
@@ -56,6 +59,7 @@ import static android.support.constraint.Constraints.TAG;
 public class FragmentMap extends Fragment implements
         OnMapReadyCallback, GoogleMap.InfoWindowAdapter,
         GoogleMap.OnInfoWindowClickListener,
+        GoogleMap.OnCameraIdleListener,
         LocationListener,
         GoogleMap.OnMapLongClickListener
 {
@@ -72,6 +76,7 @@ public class FragmentMap extends Fragment implements
     private double locationlong;
     private ArrayList<String> mUsers;
     private ArrayList<Photo> mPhotos;
+    private ArrayList<Marker> mMarker;
     private dataPass datapasser;
     private LocationManager mLC;
     private static View view;
@@ -84,6 +89,7 @@ public class FragmentMap extends Fragment implements
         void location(LatLng lat);
 
     }
+
     //attach context for the interface
     @Override
     public void onAttach(Context context)
@@ -92,7 +98,8 @@ public class FragmentMap extends Fragment implements
         datapasser = (dataPass) context;
     }
 
-    public static FragmentMap newInstance(ArrayList<Photo> photos) {
+    public static FragmentMap newInstance(ArrayList<Photo> photos)
+    {
 
         Bundle args = new Bundle();
         FragmentMap fragment = new FragmentMap();
@@ -120,7 +127,9 @@ public class FragmentMap extends Fragment implements
             gMapView.getMapAsync(this);
             mUsers = new ArrayList<>();
             mPhotos = new ArrayList<>();
+            mMarker = new ArrayList<>();
 
+            //get the data passed from activity to fragment
             if(getArguments() != null)
             {
                 mPhotos = getArguments().getParcelableArrayList("pArray");
@@ -137,7 +146,6 @@ public class FragmentMap extends Fragment implements
 
         return view;
     }
-
 
     @Override
     public void onCreate(Bundle bundle)
@@ -158,13 +166,14 @@ public class FragmentMap extends Fragment implements
             {
                 locationlat = lastKnown.getLatitude();
                 locationlong = lastKnown.getLongitude();
-
             }
             else if (lastKnown == null)
             {
                 mLC.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 0, this);
             }
-        } else {
+        }
+        else
+            {
             //request permission if we dont have them.
             ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
         }
@@ -180,7 +189,6 @@ public class FragmentMap extends Fragment implements
         Log.d(TAG, "onRequestPermissionsResult: TEST TES TES TES TES TES TES TE ES TES TES TSE");
         //request location when activity start
         //get location data from context
-
         mLC = (LocationManager) getActivity().getSystemService(LOCATION_SERVICE);
 
         //check if we have permissions
@@ -194,7 +202,6 @@ public class FragmentMap extends Fragment implements
             {
                 locationlat = lastKnown.getLatitude();
                 locationlong = lastKnown.getLongitude();
-
             }
             else if (lastKnown == null)
             {
@@ -224,11 +231,38 @@ public class FragmentMap extends Fragment implements
 
         datapasser.location(thePlaceToShow);
 
-        CameraUpdate camMovement = CameraUpdateFactory.newLatLngZoom(thePlaceToShow, 16);
+        CameraUpdate camMovement = CameraUpdateFactory.newLatLngZoom(thePlaceToShow, 19.0f);
 
         mMap.animateCamera(camMovement);
 
+        LatLngBounds bounds = mMap.getProjection().getVisibleRegion().latLngBounds;
+        Log.i(TAG, "onCameraIdle:boundz "+mMap.getProjection().getVisibleRegion());
+
+        for (Marker m : mMarker)
+        {
+            Integer c = 0;
+
+            if(bounds.contains(m.getPosition()))
+            {
+               c =+ 1;
+            }
+
+            Log.i(TAG, "zoomInCamara: "+ c.toString());
+        }
+
     }
+
+    @Override
+    public void onCameraIdle()
+    {
+
+        LatLngBounds bounds = mMap.getProjection().getVisibleRegion().latLngBounds;
+        System.out.print("boundz "+mMap.getProjection().getVisibleRegion());
+        Log.i(TAG, "onCameraIdle:boundz "+mMap.getProjection().getVisibleRegion());
+
+        //fetchData(bounds);
+    }
+
 
     private void getDeviceLocation()
     {
@@ -263,7 +297,8 @@ public class FragmentMap extends Fragment implements
     {
         mMap = googleMap;
         if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+        {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -275,7 +310,9 @@ public class FragmentMap extends Fragment implements
         }
 
         mMap.setMyLocationEnabled(true);
-        mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        mMap.getUiSettings().setZoomGesturesEnabled(false);
+
        //if marker info is cliked
         mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener()
         {
@@ -293,23 +330,20 @@ public class FragmentMap extends Fragment implements
                 else
                     {
                         String photoID = mPhotos.get(Integer.valueOf(index)).getPhoto_id();
-
-
                         //send this uuid.
                         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("photoID", Context.MODE_PRIVATE);
                         SharedPreferences.Editor ed = sharedPreferences.edit();
-
+                        ed.putInt("checker",0);
                         ed.putString("photo", photoID);
-                        ed.apply();
 
-                        //clear frag data
-                        mPhotos.clear();
-                        mUsers.clear();
+                        ed.apply();
 
                         Log.d(TAG, "onInfoWindowClick:is marker and photo the same " + marker.getTitle());
                         Intent detailActivity = new Intent(getActivity(), DetailActivity.class);
+//                        detailActivity.putParcelableArrayListExtra("data", mPhotos);
                         detailActivity.putExtra(String.valueOf(R.string.to_detail), "detail");
                         startActivity(detailActivity);
+
                 }
             }
         });
@@ -318,25 +352,27 @@ public class FragmentMap extends Fragment implements
         getDeviceLocation();
     }
 
+
+
     private void makeMarker()
     {
         mMap.clear();
+
         //have to load and for loop each marker
         for (int i = 0; i < mPhotos.size(); i++)
         {
-
             MarkerOptions options = new MarkerOptions();
-
             options.title(mPhotos.get(i).getCaption());
             options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
             LatLng ToShow = new LatLng(Double.valueOf(mPhotos.get(i).getLocation()), Double.valueOf(mPhotos.get(i).getLocationlong()));
-
             options.position(ToShow);
-
             mMap.addMarker(options);
+            mMarker.add(mMap.addMarker(options));
         }
 
     }
+
+
 
     @Override
     public void onLocationChanged(Location location)
@@ -402,6 +438,7 @@ public class FragmentMap extends Fragment implements
 
         if (gMapView != null)
         {
+
             gMapView.onStop();
         }
 
@@ -420,6 +457,10 @@ public class FragmentMap extends Fragment implements
     {
         super.onDestroy();
         if (gMapView != null)
+            //clear frag data
+            mPhotos.clear();
+            mUsers.clear();
+            mMarker.clear();
             gMapView.onDestroy();
     }
 

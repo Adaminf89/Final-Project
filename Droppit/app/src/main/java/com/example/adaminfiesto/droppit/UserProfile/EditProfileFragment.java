@@ -19,6 +19,7 @@ import android.widget.Toast;
 import com.example.adaminfiesto.droppit.DataModels.User;
 import com.example.adaminfiesto.droppit.DataModels.UserAccountSettings;
 import com.example.adaminfiesto.droppit.DataModels.UserSettings;
+import com.example.adaminfiesto.droppit.Main.HomeActivity;
 import com.example.adaminfiesto.droppit.R;
 import com.example.adaminfiesto.droppit.Utils.FirebaseMethods;
 import com.example.adaminfiesto.droppit.Utils.UniversalImageLoader;
@@ -170,6 +171,10 @@ public class EditProfileFragment extends Fragment
         }
 
         //TODO:Create INTENT BACK
+        Intent backProfile = new Intent(getContext(), ProfileActivity.class);
+        //intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        getActivity().startActivity(backProfile);
+
     }
 
     //so when the profile loads we will load the users info into the correct fields

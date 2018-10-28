@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -13,6 +14,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 
+import com.example.adaminfiesto.droppit.DataModels.Comment;
 import com.example.adaminfiesto.droppit.DataModels.Photo;
 import com.example.adaminfiesto.droppit.Main.NextActivity;
 import com.example.adaminfiesto.droppit.R;
@@ -30,6 +32,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static android.support.constraint.Constraints.TAG;
@@ -47,8 +50,10 @@ public class DetailActivity extends AppCompatActivity
     private FirebaseMethods mFirebaseMethods;
     private String photoID;
     Photo pdata;
-    private ViewPager mViewPager;
+    private ArrayList<String> mUsers;
+    private ArrayList<Photo> mPhotos;
     private int imageCount = 0;
+    private Integer comingFrom = 0;
 
 
     @Override
@@ -56,8 +61,11 @@ public class DetailActivity extends AppCompatActivity
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.detail_activity);
-        mViewPager = findViewById(R.id.viewpager_container);
         mFirebaseMethods = new FirebaseMethods(DetailActivity.this);
+        pdata = new Photo();
+        mPhotos = new ArrayList<>();
+        mUsers = new ArrayList<>();
+
         getSharedData();
         setupFirebaseAuth();
         getPhotos();
@@ -69,8 +77,12 @@ public class DetailActivity extends AppCompatActivity
         Intent getIntent = getIntent();
         String checker = getIntent.getStringExtra(String.valueOf(R.string.to_detail));
 
+
         if(checker.equals("detail"))
         {
+
+            System.out.print(pdata.describeContents());
+
             if(pdata.getmPrivate().toString().equals("false"))
             {
                 DetailFragmentPrivate fragment = new DetailFragmentPrivate();
@@ -83,7 +95,7 @@ public class DetailActivity extends AppCompatActivity
                 {
                     DetailFragmentPublic fragment = new DetailFragmentPublic();
                     FragmentTransaction transaction = DetailActivity.this.getSupportFragmentManager().beginTransaction();
-                    transaction.replace(R.id.container, fragment.newInstance(pdata));
+                    transaction.replace(R.id.container, fragment.newInstance(pdata, comingFrom));
                     transaction.commit();
                 }
 
@@ -94,10 +106,13 @@ public class DetailActivity extends AppCompatActivity
     {
         SharedPreferences sharedPreferences = getSharedPreferences("photoID", Context.MODE_PRIVATE);
         photoID = sharedPreferences.getString("photo","");
+        comingFrom = sharedPreferences.getInt("checker", 0 );
+
     }
 
     private void getPhotos()
     {
+
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
         Query query = reference.child(getString(R.string.dbname_photos)).child(photoID);
         System.out.println(photoID);
@@ -109,15 +124,34 @@ public class DetailActivity extends AppCompatActivity
             {
                 if(dataSnapshot.exists())
                 {
+                    //pdata =  dataSnapshot.getValue(Photo.class);
 
-                    pdata = dataSnapshot.getValue(Photo.class);
+                    Map<String, Object> objectMap = (HashMap<String, Object>) dataSnapshot.getValue();
 
-                    System.out.println(pdata);
+                    pdata.setCaption(objectMap.get(getString(R.string.field_caption)).toString());
+                    pdata.setTags(objectMap.get(getString(R.string.field_tags)).toString());
+                    pdata.setPhoto_id(objectMap.get(getString(R.string.field_photo_id)).toString());
+                    pdata.setUser_id(objectMap.get(getString(R.string.field_user_id)).toString());
+                    pdata.setLocation(objectMap.get(getString(R.string.field_location)).toString());
+                    pdata.setLocationlong(objectMap.get(getString(R.string.field_locationlong)).toString());
+                    pdata.setmPrivate(objectMap.get(getString(R.string.field_date_private)).toString());
+                    pdata.setDate_created(objectMap.get(getString(R.string.field_date_created)).toString());
+                    pdata.setImage_path(objectMap.get(getString(R.string.field_image_path)).toString());
 
-                    Log.d(TAG, "onDataChange: " + pdata.getCaption().toString());
+                    ArrayList<Comment> comments = new ArrayList<Comment>();
+
+                    for (DataSnapshot dSnapshot : dataSnapshot.child(getString(R.string.field_comments)).getChildren())
+                    {
+                        Comment comment = new Comment();
+                        comment.setUser_id(dSnapshot.getValue(Comment.class).getUser_id());
+                        comment.setComment(dSnapshot.getValue(Comment.class).getComment());
+                        comment.setDate_created(dSnapshot.getValue(Comment.class).getDate_created());
+                        comments.add(comment);
+                    }
+
+                    pdata.setComments(comments);
 
                     getData();
-
                 }
             }
 
@@ -129,9 +163,6 @@ public class DetailActivity extends AppCompatActivity
 
     }
 
-      /*
-     ------------------------------------ Firebase ---------------------------------------------
-     */
     private void setupFirebaseAuth()
     {
         Log.d(TAG, "setupFirebaseAuth: setting up firebase auth.");
@@ -142,7 +173,8 @@ public class DetailActivity extends AppCompatActivity
 
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth)
+            {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
 
 
@@ -183,10 +215,19 @@ public class DetailActivity extends AppCompatActivity
     }
 
     @Override
-    public void onStop() {
+    public void onStop()
+    {
         super.onStop();
-        if (mAuthListener != null) {
+        if (mAuthListener != null)
+        {
+
             mAuth.removeAuthStateListener(mAuthListener);
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
     }
 }

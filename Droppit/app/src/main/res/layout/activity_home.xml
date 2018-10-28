@@ -6,6 +6,16 @@
     android:layout_height="match_parent"
     android:background="@color/backgroundBlue">
 
+    <ProgressBar
+        android:id="@+id/progressBarMap"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
+        />
+
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -44,6 +54,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:id="@+id/container2">
+
+                <!--<android.support.design.widget.FloatingActionButton-->
+                    <!--android:id="@+id/floatingActionButton2"-->
+                    <!--android:layout_width="wrap_content"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:clickable="true"-->
+                    <!--app:srcCompat="@drawable/iconlogo" />-->
             </FrameLayout>
             <!--<include layout="@layout/layout_center_viewpager"/>-->
 
@@ -57,7 +74,8 @@
                 android:layout_marginBottom="84dp"
                 android:layout_marginEnd="41dp"
                 android:clickable="true"
-                app:srcCompat="@mipmap/ic_launcher_round" />
+                app:srcCompat="@drawable/iconlogo"
+                android:focusable="true" />
 
 
         </RelativeLayout>

@@ -3,9 +3,9 @@ package com.example.adaminfiesto.droppit.DataModels;
 public class Like {
 
     private String user_id;
-    private Integer rating;
+    private Double rating;
 
-    public Like(String user_id, Integer rating) {
+    public Like(String user_id, Double rating) {
         this.user_id = user_id;
         this.rating = rating;
     }
@@ -22,11 +22,11 @@ public class Like {
         this.user_id = user_id;
     }
 
-    public Integer getRating() {
+    public Double getRating() {
         return rating;
     }
 
-    public void setRating(Integer rating) {
+    public void setRating(Double rating) {
         this.rating = rating;
     }
 

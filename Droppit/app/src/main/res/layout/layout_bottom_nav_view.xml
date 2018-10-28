@@ -11,7 +11,7 @@
             android:layout_height="match_parent"
             android:id="@+id/bottomNavView"
             android:background="@color/backBlue"
-            app:itemIconTint="@color/offWhite"
+            app:itemIconTint="@color/switch_state"
             app:menu="@menu/bottom_nav_menu">
         </com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx>
 

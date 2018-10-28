@@ -10,6 +10,7 @@ import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,12 +20,14 @@ import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
+import com.example.adaminfiesto.droppit.DataModels.Comment;
 import com.example.adaminfiesto.droppit.DataModels.Like;
 import com.example.adaminfiesto.droppit.DataModels.Photo;
 import com.example.adaminfiesto.droppit.DataModels.UserAccountSettings;
 import com.example.adaminfiesto.droppit.DataModels.UserSettings;
 import com.example.adaminfiesto.droppit.Main.HomeActivity;
 import com.example.adaminfiesto.droppit.R;
+import com.example.adaminfiesto.droppit.Search.SearchActivity;
 import com.example.adaminfiesto.droppit.Utils.FirebaseMethods;
 import com.example.adaminfiesto.droppit.Utils.UniversalImageLoader;
 import com.google.android.gms.maps.model.LatLng;
@@ -36,7 +39,15 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
+import java.util.TimeZone;
 
 public class DetailFragmentPrivate extends Fragment
 {
@@ -50,9 +61,15 @@ public class DetailFragmentPrivate extends Fragment
     ImageView ivDropPhoto;
     ImageView ivNavBtn;
     Button deleteBtn;
+    Button addBtn;
+    Button editBtn;
+    Button commentBtn;
     Like thisLike;
+    Like loadedLike;
     Integer starRating;
+    private int checker = 0;
     RatingBar rbar;
+    private int imageCount = 0;
 
     //since were doing this page a bit differencly were bandaiding some already created fb methods
     private FirebaseAuth mAuth;
@@ -77,6 +94,7 @@ public class DetailFragmentPrivate extends Fragment
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState)
     {
+
         View view = inflater.inflate(R.layout.fragment_drop_private, null);
         tvCaption = view.findViewById(R.id.caption);
         tvDate = view.findViewById(R.id.textDate);
@@ -84,37 +102,74 @@ public class DetailFragmentPrivate extends Fragment
         tvDistance = view.findViewById(R.id.textDistance);
         ivDropPhoto = view.findViewById(R.id.event_image);
         deleteBtn = view.findViewById(R.id.delete_btn);
+        addBtn = view.findViewById(R.id.add_btn);
+        editBtn = view.findViewById(R.id.edit_btn);
+        commentBtn = view.findViewById(R.id.comment_btn);
         ivNavBtn = view.findViewById(R.id.navigationBtn);
         rbar = view.findViewById(R.id.ratingBar);
         mFirebaseMethods = new FirebaseMethods(getActivity());
         currentUser = mAuth.getInstance().getCurrentUser();
         Uuid = currentUser.getUid().toString();
+        loadedLike = new Like();
 
         setupFirebaseAuth();
         //user the passed data from arg
         if(getArguments() != null)
         {
             pData = (Photo) getArguments().getParcelable("Photo");
+            checker = getArguments().getInt("c");
+
+            if(checker == 1)
+            {
+                addBtn.setVisibility(View.GONE);
+                rbar.setVisibility(View.GONE);
+            }
         }
+
         //show the btn if this drop matches the user id
         if(pData.getUser_id().equals(Uuid))
         {
             deleteBtn.setVisibility(View.VISIBLE);
+            editBtn.setVisibility(View.VISIBLE);
+            addBtn.setVisibility(View.VISIBLE);
         }
+
+        commentBtn.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                Intent intentCom = new Intent(getContext(), CommentActivity.class);
+                intentCom.putExtra("ComData", pData);
+                intentCom.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                getContext().startActivity(intentCom);
+                getActivity().overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+            }
+        });
+
+        addBtn.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                mFirebaseMethods.collectPhoto(pData);
+            }
+        });
 
         ivNavBtn.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View v)
             {
-                String uri = String.format(Locale.ENGLISH, "geo:%f,%f", Double.valueOf(pData.getLocation()),
-                        Double.valueOf(pData.getLocationlong()));
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
-                startActivity(intent);
+                Uri gmmIntentUri = Uri.parse("google.navigation:q="+pData.getLocation()+","+pData.getLocationlong());
+                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                mapIntent.setPackage("com.google.android.apps.maps");
+                startActivity(mapIntent);
             }
         });
 
-        deleteBtn.setOnClickListener(new View.OnClickListener() {
+        deleteBtn.setOnClickListener(new View.OnClickListener()
+        {
             @Override
             public void onClick(View v)
             {
@@ -136,32 +191,80 @@ public class DetailFragmentPrivate extends Fragment
             }
         });
 
-        rbar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
+        rbar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener()
+        {
             @Override
             public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser)
             {
                 starRating = rbar.getNumStars();
+                //set this drops rating buy uuid
+                double d = rating;
                 thisLike = new Like();
-                thisLike.setRating(starRating);
+                thisLike.setRating(d);
                 thisLike.setUser_id(Uuid);
                 mFirebaseMethods.setLikesPhoto(thisLike, pData.getPhoto_id());
             }
         });
 
-       rbar.setOnClickListener(new View.OnClickListener()
-       {
-           @Override
-           public void onClick(View v)
-           {
-              starRating = rbar.getNumStars();
-              thisLike.setRating(starRating);
-              thisLike.setUser_id(Uuid);
-              mFirebaseMethods.setLikesPhoto(thisLike, pData.getUser_id());
-
-           }
-       });
+        getLikes(pData.getPhoto_id());
 
         return view;
+    }
+
+    public String getTimestampDifference(Photo photo)
+    {
+        Log.d(TAG, "getTimestampDifference: getting timestamp difference.");
+
+        String difference = "";
+        Calendar c = Calendar.getInstance();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
+        sdf.setTimeZone(TimeZone.getTimeZone("US/Eastern"));//google 'android list of timezones'
+        Date today = c.getTime();
+        sdf.format(today);
+        Date timestamp;
+        final String photoTimestamp = photo.getDate_created();
+        try
+        {
+            timestamp = sdf.parse(photoTimestamp);
+            difference = String.valueOf(Math.round(((today.getTime() - timestamp.getTime()) / 1000 / 60 / 60 / 24 )));
+
+        }
+        catch (ParseException e)
+        {
+            Log.e(TAG, "getTimestampDifference: ParseException: " + e.getMessage() );
+            difference = "0";
+        }
+        return difference +" days ago";
+    }
+
+    public void getLikes(String photoID)
+    {
+
+        myRef.child("Likes").child(pData.getUser_id()).child(photoID).addValueEventListener(new ValueEventListener()
+        {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot)
+            {
+                loadedLike = dataSnapshot.getValue(Like.class);
+                //String s = dataSnapshot.getValue(String.class);
+
+                //Toast.makeText(getContext(), ""+loadedLike, Toast.LENGTH_LONG).show();
+                //loadedLike.setRating(Double.valueOf(s));
+
+                if(loadedLike == null)
+                {
+                    return;
+                }
+                rbar.setRating(Float.valueOf(loadedLike.getRating().toString()));
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError)
+            {
+
+            }
+
+        });
     }
 
     @Override
@@ -176,15 +279,15 @@ public class DetailFragmentPrivate extends Fragment
 
     private void setProfileWidgets(UserSettings userSettings)
     {
-
+        getTimestampDifference(pData);
         Log.d(TAG, "setProfileWidgets: is the user nil ");
         UniversalImageLoader.setImage(pData.getImage_path(), ivDropPhoto,null,"");
         tvDropTitle.setText("Drop Details");
         tvCaption.setText(pData.getCaption());
-        tvDate.setText(pData.getDate_created());
-        tvDistance.setText("loading...");
+        tvDate.setText(getTimestampDifference(pData));
+        //tvDistance.setText("loading...");
+        tvDistance.setVisibility(View.GONE);
     }
-
 
     //since we need a specific user data rather than pushing it throughout the app we will just make a call to firebase to get that data
     //from the user profile node
@@ -223,7 +326,6 @@ public class DetailFragmentPrivate extends Fragment
             {
                 //retrieve user information from the database
                 setProfileWidgets(mFirebaseMethods.getUserSettings(dataSnapshot));
-                //retrieve images for the user in question
 
             }
             @Override
@@ -242,9 +344,11 @@ public class DetailFragmentPrivate extends Fragment
     }
 
     @Override
-    public void onStop() {
+    public void onStop()
+    {
         super.onStop();
-        if (mAuthListener != null) {
+        if (mAuthListener != null)
+        {
             mAuth.removeAuthStateListener(mAuthListener);
         }
     }

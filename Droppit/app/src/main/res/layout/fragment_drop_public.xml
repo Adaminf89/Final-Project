@@ -2,6 +2,7 @@
 <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/backgroundBlue"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
 
@@ -29,12 +30,21 @@
                 android:id="@+id/textDate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@color/offWhite"
                 android:text="Date" />
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/images_public"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                app:civ_border_width="0.5dp"
+                android:layout_gravity="end"/>
 
             <TextView
                 android:id="@+id/textDistance"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@color/offWhite"
                 android:text="Distance" />
 
             <de.hdodenhof.circleimageview.CircleImageView
@@ -44,6 +54,7 @@
                 app:civ_border_width="0.5dp"
                 android:layout_gravity="center"
                 />
+
 
             <!--<LinearLayout-->
                 <!--android:layout_width="match_parent"-->
@@ -66,17 +77,60 @@
                 android:layout_gravity="center_horizontal"
                 android:numStars="5"/>
 
-            <Button
-                android:id="@+id/delete_btn"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Delete"
-                android:visibility="gone" />
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/comment_btn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/rec_button"
+                    android:textColor="@color/offWhite"
+                    android:text="Comments" />
+
+                <Button
+                    android:id="@+id/add_btn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/rec_button"
+                    android:textColor="@color/offWhite"
+                    android:text="Add"
+                    android:visibility="gone"
+                  />
+
+                <Button
+                    android:id="@+id/edit_btn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/rec_button"
+                    android:textColor="@color/offWhite"
+                    android:text="Edit"
+                    android:visibility="gone"
+                    />
+
+
+                <Button
+                    android:id="@+id/delete_btn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/rec_button"
+                    android:textColor="@color/offWhite"
+                    android:text="Delete"
+                    android:visibility="gone" />
+
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/caption"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@color/offWhite"
                 android:text="Caption" />
 
         </LinearLayout>

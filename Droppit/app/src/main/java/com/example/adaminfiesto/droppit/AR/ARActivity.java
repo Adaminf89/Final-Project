@@ -7,6 +7,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Gravity;
@@ -19,224 +20,196 @@ import android.widget.Toast;
 
 import com.example.adaminfiesto.droppit.R;
 import com.example.adaminfiesto.droppit.Utils.BottomNavigationViewHelper;
-import com.example.adaminfiesto.droppit.Utils.FirebaseMethods;
-import com.example.adaminfiesto.droppit.Utils.LocationUtils;
-import com.google.ar.core.Anchor;
-import com.google.ar.core.ArCoreApk;
-import com.google.ar.core.HitResult;
-import com.google.ar.core.Plane;
-import com.google.ar.sceneform.AnchorNode;
+import com.google.ar.core.Frame;
+import com.google.ar.core.Session;
+import com.google.ar.core.TrackingState;
+import com.google.ar.core.exceptions.CameraNotAvailableException;
+import com.google.ar.core.exceptions.UnavailableException;
 import com.google.ar.sceneform.ArSceneView;
 import com.google.ar.sceneform.Node;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.ux.ArFragment;
-import com.google.ar.sceneform.ux.TransformableNode;
 import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
 
-import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import uk.co.appoly.arcorelocation.LocationMarker;
 import uk.co.appoly.arcorelocation.LocationScene;
 
+
 public class ARActivity extends AppCompatActivity
 {
     private static final String TAG = ARActivity.class.getSimpleName();
     public Context mContext = ARActivity.this;
     private static final int ACTIVITY_NUM = 3;
-    private static final int AR_FRAGMENT = 1;
-    private static final double MIN_OPENGL_VERSION = 3.0;
-    private ArFragment arFragment;
-    private ModelRenderable andyRenderable;
     Button mArButton;
-    public ArSceneView mArSceneView;
+    private ArFragment arFragment;
+    //ar
+    private Snackbar loadingMessageSnackbar = null;
+    private boolean installRequested;
+    private ModelRenderable andyRenderable;
     private LocationScene locationScene;
-    private ArrayList<String> locationArray;
+    private ArSceneView arSceneView;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState)
     {
+
         super.onCreate(savedInstanceState);
-        if (!checkIsSupportedDeviceOrFinish(this))
-        {
-            return;
-        }
         setContentView(R.layout.activity_ar);
-        mArButton = findViewById(R.id.arButton);
-        arFragment = (ArFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
-        mArSceneView = new ArSceneView(this);
-        locationArray = new ArrayList<>();
-
-
-
-
-
-        setupBottomNavigationView();
-    }
-
-
-    private void setupAR()
-    {
+        arSceneView = findViewById(R.id.arFrameLayout);
+        //arSceneView = new ArSceneView(this);
+        //arFragment = (ArFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
 
         CompletableFuture<ModelRenderable> andy = ModelRenderable.builder()
                 .setSource(this, R.raw.andy)
                 .build();
 
-
         CompletableFuture.allOf(andy)
                 .handle(
                         (notUsed, throwable) ->
                         {
-                            if (throwable != null) {
-                                //LocationUtils.displayError(this, "Unable to load renderables", throwable);
+                            if (throwable != null)
+                            {
+                                DemoUtils.displayError(this, "Unable to load renderables", throwable);
                                 return null;
                             }
-
-                            try {
-                                andyRenderable = andy.get();
-
-                            } catch (InterruptedException | ExecutionException ex)
+                            try
                             {
-                                //DemoUtils.displayError(this, "Unable to load renderables", ex);
+                                andyRenderable = andy.get();
+                            }
+                            catch (InterruptedException | ExecutionException ex)
+                            {
+                                DemoUtils.displayError(this, "Unable to load renderables", ex);
                             }
                             return null;
                         });
 
 
-        mArSceneView.getScene().addOnUpdateListener(
-                frameTime -> {
+        arSceneView
+                .getScene()
+                .setOnUpdateListener(frameTime -> {
 
-                    if (locationScene == null)
-                    {
-                        locationScene = new LocationScene(this, this, mArSceneView);
-                        locationScene.mLocationMarkers.add(new LocationMarker(-81.30501556396484, 28.59347915649414, getAndy()));
-                    }
+            Frame frame = arSceneView.getArFrame();
 
+            if (frame == null)
+            {
+                return;
+            }
 
-                    if (locationScene != null)
-                    {
-                        locationScene.processFrame(mArSceneView.getArFrame());
-                    }
+            if (frame.getCamera().getTrackingState() != TrackingState.TRACKING)
+            {
+                return;
+            }
 
-                });
+            if (locationScene == null)
+            {
+                locationScene = new LocationScene(this, this, arSceneView);
 
+                locationScene.mLocationMarkers.add(new LocationMarker(-81.3290023803711,28.808021545410156, getAndy("Drop")));
+
+            }
+
+            if (locationScene != null)
+            {
+                //hideLoadingMessage();
+                locationScene.processFrame(arSceneView.getArFrame());
+            }
+
+        });
+
+        setupBottomNavigationView();
     }
 
-    private Node getAndy()
+
+    private Node getAndy(String name)
     {
         Node base = new Node();
+        base.setParent(arSceneView.getScene());
         base.setRenderable(andyRenderable);
-
         Context c = this;
 
-        base.setOnTapListener((v, event) ->
-        {
-            Toast.makeText(
-                    c, "Andy touched.", Toast.LENGTH_LONG)
-                    .show();
-        });
+        base.setOnTapListener((v, event) -> Toast.makeText(
+                c, "Location: "+name, Toast.LENGTH_LONG)
+                .show());
 
         return base;
     }
 
 
 
-    public void runDataAR()
+    @Override
+    protected void onResume()
     {
+        super.onResume();
 
-        // When you build a Renderable, Sceneform loads its resources in the background while returning
-        // a CompletableFuture. Call thenAccept(), handle(), or check isDone() before calling get().
-        ModelRenderable.builder()
-                .setSource(this, R.raw.andy)
-                .build()
-                .thenAccept(renderable -> andyRenderable = renderable)
-                .exceptionally(
-                        throwable -> {
-                            Toast toast =
-                                    Toast.makeText(this, "Unable to load andy renderable", Toast.LENGTH_LONG);
-                            toast.setGravity(Gravity.CENTER, 0, 0);
-                            toast.show();
-                            return null;
-                        });
-
-        arFragment.setOnTapArPlaneListener(
-                (HitResult hitResult, Plane plane, MotionEvent motionEvent) ->
-                {
-                    if (andyRenderable == null)
-                    {
-                        return;
-                    }
-
-                    // Create the Anchor.
-                    Anchor anchor = hitResult.createAnchor();
-                    AnchorNode anchorNode = new AnchorNode(anchor);
-                    anchorNode.setParent(arFragment.getArSceneView().getScene());
-
-                    // Create the transformable andy and add it to the anchor.
-                    TransformableNode andy = new TransformableNode(arFragment.getTransformationSystem());
-                    andy.setParent(anchorNode);
-                    andy.setRenderable(andyRenderable);
-                    andy.select();
-                });
-
-    }
-
-    /**
-     * Returns false and displays an error message if Sceneform can not run, true if Sceneform can run
-     * on this device.
-     *
-     * <p>Sceneform requires Android N on the device as well as OpenGL 3.0 capabilities.
-     *
-     * <p>Finishes the activity if Sceneform can not run
-     */
-    public static boolean checkIsSupportedDeviceOrFinish(final Activity activity)
-    {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-            Log.e(TAG, "Sceneform requires Android N or later");
-            Toast.makeText(activity, "Sceneform requires Android N or later", Toast.LENGTH_LONG).show();
-            activity.finish();
-            return false;
-        }
-        String openGlVersionString =
-                ((ActivityManager) activity.getSystemService(Context.ACTIVITY_SERVICE))
-                        .getDeviceConfigurationInfo()
-                        .getGlEsVersion();
-        if (Double.parseDouble(openGlVersionString) < MIN_OPENGL_VERSION) {
-            Log.e(TAG, "Sceneform requires OpenGL ES 3.0 later");
-            Toast.makeText(activity, "Sceneform requires OpenGL ES 3.0 or later", Toast.LENGTH_LONG)
-                    .show();
-            activity.finish();
-            return false;
-        }
-        return true;
-    }
-
-
-    void maybeEnableArButton()
-    {
-        ArCoreApk.Availability availability = ArCoreApk.getInstance().checkAvailability(this);
-
-        if (availability.isTransient())
+        if (arSceneView == null)
         {
-            // Re-query at 5Hz while compatibility is checked in the background.
-            new Handler().postDelayed(new Runnable()
-            {
-                @Override
-                public void run()
+            return;
+        }
+        if (arSceneView.getSession() == null)
+        {
+            // If the session wasn't created yet, don't resume rendering.
+            // This can happen if ARCore needs to be updated or permissions are not granted yet.
+            try {
+                Session session = DemoUtils.createArSession(this, installRequested);
+                if (session == null)
                 {
-                    maybeEnableArButton();
+                    installRequested = DemoUtils.hasCameraPermission(this);
+                    return;
                 }
-            }, 200);
+                else
+                    {
+                    arSceneView.setupSession(session);
+                }
+            }
+            catch (UnavailableException e)
+            {
+                DemoUtils.handleSessionException(this, e);
+            }
         }
-        if (availability.isSupported()) {
-            mArButton.setVisibility(View.VISIBLE);
-            mArButton.setEnabled(true);
-            // indicator on the button.
-        } else { // Unsupported or unknown.
-            mArButton.setVisibility(View.INVISIBLE);
-            mArButton.setEnabled(false);
+
+        if(locationScene!=null)
+        {
+            locationScene.resume();
         }
+
+        try
+        {
+            arSceneView.resume();
+
+        }
+        catch (CameraNotAvailableException ex)
+        {
+            finish();
+            return;
+        }
+    }
+
+
+    @Override
+    public void onPause()
+    {
+        super.onPause();
+        if(locationScene!=null)
+        {
+            locationScene.pause();
+        }
+        arSceneView.pause();
+    }
+
+    @Override
+    public void onDestroy()
+    {
+        super.onDestroy();
+
+        if(locationScene!=null)
+        {
+            locationScene.pause();
+            locationScene = null;
+        }
+        arSceneView.destroy();
     }
 
 

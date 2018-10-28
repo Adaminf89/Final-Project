@@ -59,7 +59,6 @@ import static android.support.constraint.Constraints.TAG;
 public class FragmentMap extends Fragment implements
         OnMapReadyCallback, GoogleMap.InfoWindowAdapter,
         GoogleMap.OnInfoWindowClickListener,
-        GoogleMap.OnCameraIdleListener,
         LocationListener,
         GoogleMap.OnMapLongClickListener
 {
@@ -100,7 +99,6 @@ public class FragmentMap extends Fragment implements
 
     public static FragmentMap newInstance(ArrayList<Photo> photos)
     {
-
         Bundle args = new Bundle();
         FragmentMap fragment = new FragmentMap();
         args.putParcelableArrayList("pArray", photos);
@@ -233,35 +231,11 @@ public class FragmentMap extends Fragment implements
 
         CameraUpdate camMovement = CameraUpdateFactory.newLatLngZoom(thePlaceToShow, 19.0f);
 
-        mMap.animateCamera(camMovement);
-
-        LatLngBounds bounds = mMap.getProjection().getVisibleRegion().latLngBounds;
-        Log.i(TAG, "onCameraIdle:boundz "+mMap.getProjection().getVisibleRegion());
-
-        for (Marker m : mMarker)
-        {
-            Integer c = 0;
-
-            if(bounds.contains(m.getPosition()))
-            {
-               c =+ 1;
-            }
-
-            Log.i(TAG, "zoomInCamara: "+ c.toString());
-        }
+        mMap.moveCamera(camMovement);
+        //mMap.animateCamera(camMovement);
 
     }
 
-    @Override
-    public void onCameraIdle()
-    {
-
-        LatLngBounds bounds = mMap.getProjection().getVisibleRegion().latLngBounds;
-        System.out.print("boundz "+mMap.getProjection().getVisibleRegion());
-        Log.i(TAG, "onCameraIdle:boundz "+mMap.getProjection().getVisibleRegion());
-
-        //fetchData(bounds);
-    }
 
 
     private void getDeviceLocation()
@@ -320,36 +294,38 @@ public class FragmentMap extends Fragment implements
             public void onInfoWindowClick(Marker marker)
             {
 
+                //Todo: get the marker position then the id then passdata
                 String index = marker.getId();
+                LatLng p = marker.getPosition();
+                String l = String.valueOf(p.latitude);
                 index = index.replace("m","");
 
-                if(Integer.valueOf(index) >= mPhotos.size())
+                for(Photo i : mPhotos)
                 {
-//                    getUserPhoto();
+                   if(i.getLocation().equals(String.valueOf(p.latitude)) && i.getLocationlong().equals(String.valueOf(p.longitude)))
+                   {
+                       String photoID = i.getPhoto_id();
+                       //send this uuid.
+                       SharedPreferences sharedPreferences = getActivity().getSharedPreferences("photoID", Context.MODE_PRIVATE);
+                       SharedPreferences.Editor ed = sharedPreferences.edit();
+                       ed.putInt("checker",0);
+                       ed.putString("photo", photoID);
+                       ed.apply();
+                   }
                 }
-                else
-                    {
-                        String photoID = mPhotos.get(Integer.valueOf(index)).getPhoto_id();
-                        //send this uuid.
-                        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("photoID", Context.MODE_PRIVATE);
-                        SharedPreferences.Editor ed = sharedPreferences.edit();
-                        ed.putInt("checker",0);
-                        ed.putString("photo", photoID);
 
-                        ed.apply();
+                Log.d(TAG, "onInfoWindowClick:is marker and photo the same " + marker.getTitle());
+                Intent detailActivity = new Intent(getActivity(), DetailActivity.class);
+                getActivity().overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+                detailActivity.putExtra(String.valueOf(R.string.to_detail), "detail");
+                startActivity(detailActivity);
 
-                        Log.d(TAG, "onInfoWindowClick:is marker and photo the same " + marker.getTitle());
-                        Intent detailActivity = new Intent(getActivity(), DetailActivity.class);
-//                        detailActivity.putParcelableArrayListExtra("data", mPhotos);
-                        detailActivity.putExtra(String.valueOf(R.string.to_detail), "detail");
-                        startActivity(detailActivity);
-
-                }
             }
-        });
+     });
 
         makeMarker();
         getDeviceLocation();
+        mMap.getUiSettings().setScrollGesturesEnabled(false);
     }
 
 
@@ -363,11 +339,11 @@ public class FragmentMap extends Fragment implements
         {
             MarkerOptions options = new MarkerOptions();
             options.title(mPhotos.get(i).getCaption());
-            options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+            options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
             LatLng ToShow = new LatLng(Double.valueOf(mPhotos.get(i).getLocation()), Double.valueOf(mPhotos.get(i).getLocationlong()));
             options.position(ToShow);
             mMap.addMarker(options);
-            mMarker.add(mMap.addMarker(options));
+            //mMarker.add(mMap.addMarker(options));
         }
 
     }
@@ -438,10 +414,14 @@ public class FragmentMap extends Fragment implements
 
         if (gMapView != null)
         {
-
             gMapView.onStop();
         }
+    }
 
+    @Override
+    public void onPause()
+    {
+        super.onPause();
     }
 
     @Override
@@ -449,7 +429,10 @@ public class FragmentMap extends Fragment implements
     {
         super.onResume();
         if (gMapView != null)
+        {
             gMapView.onResume();
+        }
+
     }
 
     @Override

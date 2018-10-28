@@ -90,7 +90,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Please wait..."
-        android:textColor="@color/black"
+        android:textColor="@color/offWhite"
         android:textSize="20sp"
         android:layout_alignBottom="@+id/progressBar"
         android:layout_alignRight="@+id/progressBar"

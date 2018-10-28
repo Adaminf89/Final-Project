@@ -119,19 +119,21 @@ public class DetailFragmentPrivate extends Fragment
             pData = (Photo) getArguments().getParcelable("Photo");
             checker = getArguments().getInt("c");
 
-            if(checker == 1)
-            {
-                addBtn.setVisibility(View.GONE);
-                rbar.setVisibility(View.GONE);
-            }
         }
-
         //show the btn if this drop matches the user id
         if(pData.getUser_id().equals(Uuid))
         {
             deleteBtn.setVisibility(View.VISIBLE);
             editBtn.setVisibility(View.VISIBLE);
             addBtn.setVisibility(View.VISIBLE);
+            commentBtn.setVisibility(View.VISIBLE);
+        }
+
+        if(checker == 1)
+        {
+            commentBtn.setVisibility(View.GONE);
+            addBtn.setVisibility(View.GONE);
+            rbar.setVisibility(View.GONE);
         }
 
         commentBtn.setOnClickListener(new View.OnClickListener()
@@ -205,6 +207,15 @@ public class DetailFragmentPrivate extends Fragment
                 mFirebaseMethods.setLikesPhoto(thisLike, pData.getPhoto_id());
             }
         });
+
+        editBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v)
+            {
+
+            }
+        });
+
 
         getLikes(pData.getPhoto_id());
 

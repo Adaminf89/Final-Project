@@ -183,7 +183,6 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
         ImageLoader.getInstance().init(universalImageLoader.getConfig());
     }
 
-
     private void setupViewPager()
     {
         FragmentMap fragment = new FragmentMap();
@@ -230,6 +229,8 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
 
     private void getPhotos()
     {
+        mPhotos.clear();
+
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
 
         for(int i = 0; i < mUsers.size(); i++)
@@ -255,22 +256,7 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
 //                        photo.setUser_id(objectMap.get(getString(R.string.field_user_id)).toString());
                         photo.setLocation(objectMap.get(getString(R.string.field_location)).toString());
                         photo.setLocationlong(objectMap.get(getString(R.string.field_locationlong)).toString());
-//                        photo.setmPrivate(objectMap.get(getString(R.string.field_date_private)).toString());
-//                        photo.setDate_created(objectMap.get(getString(R.string.field_date_created)).toString());
-//                        photo.setImage_path(objectMap.get(getString(R.string.field_image_path)).toString());
 
-//                        ArrayList<Comment> comments = new ArrayList<Comment>();
-//
-//                        for (DataSnapshot dSnapshot : singleSnapshot.child(getString(R.string.field_comments)).getChildren())
-//                        {
-//                            Comment comment = new Comment();
-//                            comment.setUser_id(dSnapshot.getValue(Comment.class).getUser_id());
-//                            comment.setComment(dSnapshot.getValue(Comment.class).getComment());
-//                            comment.setDate_created(dSnapshot.getValue(Comment.class).getDate_created());
-//                            comments.add(comment);
-//                        }
-//
-//                        photo.setComments(comments);
                         mPhotos.add(photo);
 
                     }
@@ -423,6 +409,7 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
     protected void onResume()
     {
         super.onResume();
+        mPhotos.clear();
         getUserPhoto();
         Log.d(TAG, "onResume: " + dalocation);
     }

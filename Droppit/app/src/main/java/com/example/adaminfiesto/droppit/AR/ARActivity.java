@@ -59,8 +59,6 @@ public class ARActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ar);
         arSceneView = findViewById(R.id.arFrameLayout);
-        //arSceneView = new ArSceneView(this);
-        //arFragment = (ArFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
 
         CompletableFuture<ModelRenderable> andy = ModelRenderable.builder()
                 .setSource(this, R.raw.andy)

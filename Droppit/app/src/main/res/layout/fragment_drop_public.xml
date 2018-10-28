@@ -31,21 +31,25 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textColor="@color/offWhite"
+                android:paddingBottom="50dp"
                 android:text="Date" />
-
-            <de.hdodenhof.circleimageview.CircleImageView
-                android:id="@+id/images_public"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                app:civ_border_width="0.5dp"
-                android:layout_gravity="end"/>
 
             <TextView
                 android:id="@+id/textDistance"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textColor="@color/offWhite"
-                android:text="Distance" />
+                android:text="Distance"
+                android:visibility="gone"/>
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/images_public"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                app:civ_border_width="0.5dp"
+                android:layout_gravity="end"
+             />
+
 
             <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/event_image"
@@ -75,7 +79,18 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
                 android:numStars="5"/>
+
+            <TextView
+                android:id="@+id/caption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Caption"
+                android:layout_marginTop="50dp"
+                android:layout_marginBottom="10dp"
+                android:textColor="@color/offWhite" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -89,7 +104,8 @@
                     android:layout_weight="1"
                     android:background="@drawable/rec_button"
                     android:textColor="@color/offWhite"
-                    android:text="Comments" />
+                    android:text="Comments"
+                    android:visibility="gone"/>
 
                 <Button
                     android:id="@+id/add_btn"
@@ -125,13 +141,6 @@
                     android:visibility="gone" />
 
             </LinearLayout>
-
-            <TextView
-                android:id="@+id/caption"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="@color/offWhite"
-                android:text="Caption" />
 
         </LinearLayout>
 

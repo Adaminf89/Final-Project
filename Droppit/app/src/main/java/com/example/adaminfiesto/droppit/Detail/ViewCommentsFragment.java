@@ -352,9 +352,18 @@ public class ViewCommentsFragment extends Fragment
     }
 
     @Override
-    public void onStop() {
+    public void onPause() {
+        super.onPause();
+        mComments.clear();
+    }
+
+    @Override
+    public void onStop()
+    {
         super.onStop();
-        if (mAuthListener != null) {
+        mComments.clear();
+        if (mAuthListener != null)
+        {
             mAuth.removeAuthStateListener(mAuthListener);
         }
     }

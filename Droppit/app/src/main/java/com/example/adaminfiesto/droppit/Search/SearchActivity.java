@@ -103,6 +103,7 @@ public class SearchActivity extends AppCompatActivity
 
         }
         else{
+
             DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
             Query query = reference.child(getString(R.string.dbname_users))
                     .orderByChild(getString(R.string.field_username)).equalTo(keyword);

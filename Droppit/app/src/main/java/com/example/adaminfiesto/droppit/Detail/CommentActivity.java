@@ -55,9 +55,7 @@ public class CommentActivity extends AppCompatActivity
         pdata = (Photo) intent.getParcelableExtra("ComData");
         getUserPhoto();
 
-
     }
-
 
     public void setUpFrag()
     {
@@ -66,9 +64,12 @@ public class CommentActivity extends AppCompatActivity
         args.putParcelable(getString(R.string.photo), pdata);
         fragment.setArguments(args);
 
+        mPhotos.clear();
+        mUsers.clear();
+
         FragmentTransaction transaction =  CommentActivity.this.getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.container, fragment);
-        transaction.commit();
+        transaction.commitNowAllowingStateLoss();
     }
 
     private void getUserPhoto()
@@ -105,7 +106,6 @@ public class CommentActivity extends AppCompatActivity
         });
 
     }
-
 
     private void getPhotos()
     {
@@ -165,11 +165,9 @@ public class CommentActivity extends AppCompatActivity
 
                 }
             });
-
         }
 
     }
-
 
     private void setupFirebaseAuth()
     {
@@ -199,14 +197,18 @@ public class CommentActivity extends AppCompatActivity
     }
 
     @Override
-    public void onStart() {
+    public void onStart()
+    {
         super.onStart();
         mAuth.addAuthStateListener(mAuthListener);
     }
 
     @Override
-    public void onStop() {
+    public void onStop()
+    {
         super.onStop();
+        mPhotos.clear();
+        mUsers.clear();
         if (mAuthListener != null)
         {
             mAuth.removeAuthStateListener(mAuthListener);

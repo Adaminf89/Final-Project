@@ -48,6 +48,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -75,11 +78,13 @@ public class FragmentMap extends Fragment implements
     private double locationlong;
     private ArrayList<String> mUsers;
     private ArrayList<Photo> mPhotos;
+    private ArrayList<Photo> passPhotos;
     private ArrayList<Marker> mMarker;
     private dataPass datapasser;
     private LocationManager mLC;
     private static View view;
     LatLng thePlaceToShow;
+    LatLng userloaction;
     FusedLocationProviderClient fusedLocationProviderClient;
 
 
@@ -125,11 +130,13 @@ public class FragmentMap extends Fragment implements
             gMapView.getMapAsync(this);
             mUsers = new ArrayList<>();
             mPhotos = new ArrayList<>();
+            passPhotos = new ArrayList<>();
             mMarker = new ArrayList<>();
 
             //get the data passed from activity to fragment
             if(getArguments() != null)
             {
+                mPhotos.clear();
                 mPhotos = getArguments().getParcelableArrayList("pArray");
             }
 
@@ -179,16 +186,13 @@ public class FragmentMap extends Fragment implements
         setHasOptionsMenu(true);
     }
 
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
     {
-
         Log.d(TAG, "onRequestPermissionsResult: TEST TES TES TES TES TES TES TE ES TES TES TSE");
         //request location when activity start
         //get location data from context
         mLC = (LocationManager) getActivity().getSystemService(LOCATION_SERVICE);
-
         //check if we have permissions
         if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED)
@@ -233,10 +237,7 @@ public class FragmentMap extends Fragment implements
 
         mMap.moveCamera(camMovement);
         //mMap.animateCamera(camMovement);
-
     }
-
-
 
     private void getDeviceLocation()
     {
@@ -255,15 +256,25 @@ public class FragmentMap extends Fragment implements
         {
             public void onSuccess(Location location)
             {
-
                 locationlat = location.getLatitude();
                 locationlong = location.getLongitude();
                 zoomInCamara(location);
 
+                //call the distance of the radius of from user
+                //grab the data for AR
+                for (Photo i : mPhotos)
+                {
+                    LatLng latM = new LatLng(Double.valueOf(i.getLocation()), Double.valueOf(i.getLocationlong()));
+                    double dis = CalculationByDistance(latM,thePlaceToShow);
+
+                    if (dis > 15.0f)
+                    {
+                        passPhotos.add(i);
+                    }
+                }
+
             }
-
         });
-
     }
 
     @Override
@@ -271,8 +282,7 @@ public class FragmentMap extends Fragment implements
     {
         mMap = googleMap;
         if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
-        {
+                && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -287,31 +297,26 @@ public class FragmentMap extends Fragment implements
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         mMap.getUiSettings().setZoomGesturesEnabled(false);
 
-       //if marker info is cliked
-        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener()
-        {
+        //if marker info is cliked
+        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
             @Override
-            public void onInfoWindowClick(Marker marker)
-            {
+            public void onInfoWindowClick(Marker marker) {
 
                 //Todo: get the marker position then the id then passdata
-                String index = marker.getId();
                 LatLng p = marker.getPosition();
-                String l = String.valueOf(p.latitude);
-                index = index.replace("m","");
 
-                for(Photo i : mPhotos)
+                for (Photo i : mPhotos)
                 {
-                   if(i.getLocation().equals(String.valueOf(p.latitude)) && i.getLocationlong().equals(String.valueOf(p.longitude)))
-                   {
-                       String photoID = i.getPhoto_id();
-                       //send this uuid.
-                       SharedPreferences sharedPreferences = getActivity().getSharedPreferences("photoID", Context.MODE_PRIVATE);
-                       SharedPreferences.Editor ed = sharedPreferences.edit();
-                       ed.putInt("checker",0);
-                       ed.putString("photo", photoID);
-                       ed.apply();
-                   }
+                    if (i.getLocation().equals(String.valueOf(p.latitude)) && i.getLocationlong().equals(String.valueOf(p.longitude)))
+                    {
+                        String photoID = i.getPhoto_id();
+                        //send this uuid.
+                        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("photoID", Context.MODE_PRIVATE);
+                        SharedPreferences.Editor ed = sharedPreferences.edit();
+                        ed.putInt("checker", 0);
+                        ed.putString("photo", photoID);
+                        ed.apply();
+                    }
                 }
 
                 Log.d(TAG, "onInfoWindowClick:is marker and photo the same " + marker.getTitle());
@@ -321,19 +326,17 @@ public class FragmentMap extends Fragment implements
                 startActivity(detailActivity);
 
             }
-     });
+        });
 
         makeMarker();
         getDeviceLocation();
         mMap.getUiSettings().setScrollGesturesEnabled(false);
+
     }
-
-
 
     private void makeMarker()
     {
         mMap.clear();
-
         //have to load and for loop each marker
         for (int i = 0; i < mPhotos.size(); i++)
         {
@@ -343,12 +346,36 @@ public class FragmentMap extends Fragment implements
             LatLng ToShow = new LatLng(Double.valueOf(mPhotos.get(i).getLocation()), Double.valueOf(mPhotos.get(i).getLocationlong()));
             options.position(ToShow);
             mMap.addMarker(options);
-            //mMarker.add(mMap.addMarker(options));
         }
 
     }
 
 
+    public double CalculationByDistance(LatLng StartP, LatLng EndP)
+    {
+        int Radius = 6371;// radius of earth in Km
+        double lat1 = StartP.latitude;
+        double lat2 = EndP.latitude;
+        double lon1 = StartP.longitude;
+        double lon2 = EndP.longitude;
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                + Math.cos(Math.toRadians(lat1))
+                * Math.cos(Math.toRadians(lat2)) * Math.sin(dLon / 2)
+                * Math.sin(dLon / 2);
+        double c = 2 * Math.asin(Math.sqrt(a));
+        double valueResult = Radius * c;
+        double km = valueResult / 1;
+        DecimalFormat newFormat = new DecimalFormat("####");
+        int kmInDec = Integer.valueOf(newFormat.format(km));
+        double meter = valueResult % 1000;
+        int meterInDec = Integer.valueOf(newFormat.format(meter));
+        Log.i("Radius Value", "" + valueResult + "   KM  " + kmInDec
+                + " Meter   " + meterInDec);
+
+        return Radius * c;
+    }
 
     @Override
     public void onLocationChanged(Location location)
@@ -443,6 +470,7 @@ public class FragmentMap extends Fragment implements
             //clear frag data
             mPhotos.clear();
             mUsers.clear();
+            passPhotos.clear();
             mMarker.clear();
             gMapView.onDestroy();
     }

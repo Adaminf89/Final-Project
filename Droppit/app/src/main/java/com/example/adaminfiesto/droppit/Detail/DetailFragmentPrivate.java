@@ -37,6 +37,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.text.ParseException;
@@ -251,30 +252,28 @@ public class DetailFragmentPrivate extends Fragment
     public void getLikes(String photoID)
     {
 
-        myRef.child("Likes").child(pData.getUser_id()).child(photoID).addValueEventListener(new ValueEventListener()
-        {
+        Query q = myRef.child("Likes").child(currentUser.getUid()).child(photoID);
+
+        q.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot)
-            {
-                loadedLike = dataSnapshot.getValue(Like.class);
-                //String s = dataSnapshot.getValue(String.class);
-
-                //Toast.makeText(getContext(), ""+loadedLike, Toast.LENGTH_LONG).show();
-                //loadedLike.setRating(Double.valueOf(s));
-
-                if(loadedLike == null)
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists())
                 {
-                    return;
+                    loadedLike = dataSnapshot.getValue(Like.class);
+
+                    if(loadedLike == null)
+                    {
+                        return;
+                    }
+                    rbar.setRating(Float.valueOf(loadedLike.getRating().toString()));
                 }
-                rbar.setRating(Float.valueOf(loadedLike.getRating().toString()));
+
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError databaseError)
-            {
+            public void onCancelled(@NonNull DatabaseError databaseError) {
 
             }
-
         });
     }
 

@@ -14,32 +14,37 @@
     </RelativeLayout>
 
 
-        <RelativeLayout
+    <RelativeLayout
+        android:id="@+id/relLayout1"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:layout_below="@+id/relLayout0">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recyclerview"
             android:layout_width="match_parent"
-            android:layout_height="250dp"
-            android:layout_below="@+id/relLayout0"
-            android:id="@+id/relLayout1">
+            android:layout_height="150dp"
+            android:scrollbars="horizontal">
 
-            <android.support.v7.widget.RecyclerView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
+        </android.support.v7.widget.RecyclerView>
 
-            </android.support.v7.widget.RecyclerView>
-
-        </RelativeLayout>
+    </RelativeLayout>
 
     <RelativeLayout
         android:id="@+id/relLayout2"
         android:layout_width="match_parent"
-        android:layout_height="350dp"
+        android:layout_height="match_parent"
         android:layout_below="@+id/relLayout1">
 
 
+        <ListView
+            android:id="@+id/listView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
+        </ListView>
     </RelativeLayout>
 
-    <!--</FrameLayout>-->
-
-
     <include layout="@layout/layout_bottom_nav_view"/>
+
 </RelativeLayout>

@@ -126,16 +126,15 @@ public class DetailFragmentPrivate extends Fragment
         {
             deleteBtn.setVisibility(View.VISIBLE);
             editBtn.setVisibility(View.VISIBLE);
-            addBtn.setVisibility(View.VISIBLE);
             commentBtn.setVisibility(View.VISIBLE);
+
+        }
+        else
+        {
+            commentBtn.setVisibility(View.VISIBLE);
+            addBtn.setVisibility(View.VISIBLE);
         }
 
-        if(checker == 1)
-        {
-            commentBtn.setVisibility(View.GONE);
-            addBtn.setVisibility(View.GONE);
-            rbar.setVisibility(View.GONE);
-        }
 
         commentBtn.setOnClickListener(new View.OnClickListener()
         {

@@ -256,8 +256,8 @@ public class FragmentMap extends Fragment implements
         {
             public void onSuccess(Location location)
             {
-                locationlat = location.getLatitude();
-                locationlong = location.getLongitude();
+//                locationlat = location.getLatitude();
+//                locationlong = location.getLongitude();
                 zoomInCamara(location);
 
                 //call the distance of the radius of from user
@@ -302,7 +302,7 @@ public class FragmentMap extends Fragment implements
             @Override
             public void onInfoWindowClick(Marker marker) {
 
-                //Todo: get the marker position then the id then passdata
+                // get the marker position then the id then passdata
                 LatLng p = marker.getPosition();
 
                 for (Photo i : mPhotos)

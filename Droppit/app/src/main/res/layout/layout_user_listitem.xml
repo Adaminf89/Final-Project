@@ -9,12 +9,11 @@
         android:layout_height="100dp">
 
         <ImageView
-            android:layout_width="75dp"
-            android:layout_height="75dp"
             android:id="@+id/profile_image"
-            android:layout_marginLeft="20dp"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
             android:layout_centerVertical="true"
-            />
+            android:layout_marginLeft="20dp" />
 
         <RelativeLayout
             android:layout_width="match_parent"

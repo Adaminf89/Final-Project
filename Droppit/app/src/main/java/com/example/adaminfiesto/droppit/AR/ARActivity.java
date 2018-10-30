@@ -89,8 +89,14 @@ public class ARActivity extends AppCompatActivity
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         arSceneView = findViewById(R.id.arFrameLayout);
         getUserPhoto();
-        getDeviceLocation();
+        setupBottomNavigationView();
 
+//        arMethod();
+
+    }
+
+    public void arMethod()
+    {
         CompletableFuture<ModelRenderable> andy = ModelRenderable.builder()
                 .setSource(this, R.raw.andy)
                 .build();
@@ -116,41 +122,46 @@ public class ARActivity extends AppCompatActivity
                         });
 
 
+
         arSceneView
                 .getScene()
                 .setOnUpdateListener(frameTime -> {
 
-            Frame frame = arSceneView.getArFrame();
 
-            if (frame == null)
-            {
-                return;
-            }
+                    Frame frame = arSceneView.getArFrame();
 
-            if (frame.getCamera().getTrackingState() != TrackingState.TRACKING)
-            {
-                return;
-            }
+                    if (frame == null)
+                    {
+                        return;
+                    }
 
-            if (locationScene == null)
-            {
-                locationScene = new LocationScene(this, this, arSceneView);
+                    if (frame.getCamera().getTrackingState() != TrackingState.TRACKING)
+                    {
+                        return;
+                    }
 
-                locationScene.mLocationMarkers.add(new LocationMarker(-81.3290023803711,28.808021545410156, getAndy("Drop")));
+                    if (locationScene == null)
+                    {
+                        locationScene = new LocationScene(this, this, arSceneView);
+                        //the current photoes buy the user
 
-            }
+//                        for(Photo p : passPhotos)
+//                        {
+//                            locationScene.mLocationMarkers.add(new LocationMarker(Double.valueOf(p.getLocationlong()),Double.valueOf(p.getLocation()), getAndy(p.getCaption())));
+//                        }
 
-            if (locationScene != null)
-            {
-                //hideLoadingMessage();
-                locationScene.processFrame(arSceneView.getArFrame());
-            }
+                        locationScene.mLocationMarkers.add(new LocationMarker(-81.3290023803711,28.808021545410156, getAndy("Drop")));
+                    }
 
-        });
+                    if (locationScene != null)
+                    {
+                        //hideLoadingMessage();
+                        locationScene.processFrame(arSceneView.getArFrame());
+                    }
 
-        setupBottomNavigationView();
+                });
+
     }
-
 
     private void getUserPhoto()
     {
@@ -217,6 +228,8 @@ public class ARActivity extends AppCompatActivity
 
                         mPhotos.add(photo);
                     }
+
+                    getDeviceLocation();
                 }
 
                 @Override
@@ -224,6 +237,7 @@ public class ARActivity extends AppCompatActivity
 
                 }
             });
+
         }
 
     }
@@ -260,8 +274,11 @@ public class ARActivity extends AppCompatActivity
                     }
                 }
 
+                arMethod();
             }
         });
+
+
     }
 
 
@@ -279,7 +296,6 @@ public class ARActivity extends AppCompatActivity
 
         return base;
     }
-
 
 
     @Override
@@ -330,7 +346,6 @@ public class ARActivity extends AppCompatActivity
         }
     }
 
-
     @Override
     public void onPause()
     {
@@ -354,7 +369,6 @@ public class ARActivity extends AppCompatActivity
         }
         arSceneView.destroy();
     }
-
 
     public double CalculationByDistance(LatLng StartP, LatLng EndP)
     {
@@ -381,7 +395,6 @@ public class ARActivity extends AppCompatActivity
 
         return Radius * c;
     }
-
 
     private void setupBottomNavigationView()
     {

@@ -51,6 +51,7 @@ public class ProfileActivity extends AppCompatActivity
                 if(!user.getUser_id().equals(FirebaseAuth.getInstance().getCurrentUser().getUid()))
                 {
                     Log.d(TAG, "init: inflating view profile");
+                    //todo: load the other profile fragment
 
                 }
                 else

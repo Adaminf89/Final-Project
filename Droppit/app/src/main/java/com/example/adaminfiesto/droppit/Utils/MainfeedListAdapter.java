@@ -20,6 +20,7 @@ import com.example.adaminfiesto.droppit.DataModels.Like;
 import com.example.adaminfiesto.droppit.DataModels.Photo;
 import com.example.adaminfiesto.droppit.DataModels.User;
 import com.example.adaminfiesto.droppit.DataModels.UserAccountSettings;
+import com.example.adaminfiesto.droppit.Feed.FeedActivity;
 import com.example.adaminfiesto.droppit.R;
 import com.example.adaminfiesto.droppit.UserProfile.ProfileActivity;
 import com.google.firebase.auth.FirebaseAuth;
@@ -38,6 +39,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class MainfeedListAdapter extends ArrayAdapter<Photo>
 {
@@ -67,22 +70,16 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo>
 
     static class ViewHolder
     {
-        ImageView mprofileImage;
+        CircleImageView mprofileImage;
+        CircleImageView image;
         String likesString;
-        TextView username, timeDetla, caption, likes, comments;
-        ImageView image;
-        //icons to like
-        ImageView heartRed, heartWhite, comment;
+        TextView username, timeDetla, caption, comments;
 
         //var for each post user
         UserAccountSettings settings = new UserAccountSettings();
-
         User user  = new User();
         StringBuilder users;
-        String mLikesString;
         boolean likeByCurrentUser;
-
-        //Heart heart;
         GestureDetector detector;
         Photo photo;
     }
@@ -98,22 +95,16 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo>
         {
             convertView = mInflater.inflate(mLayoutResource, parent, false);
             holder = new ViewHolder();
+            holder.mprofileImage = convertView.findViewById(R.id.profile_photo);
+            holder.username =  convertView.findViewById(R.id.username);
+            holder.caption = convertView.findViewById(R.id.image_caption);
+            holder.comments = convertView.findViewById(R.id.image_comments_link);
+            holder.timeDetla =  convertView.findViewById(R.id.image_time_posted);
+            holder.image = convertView.findViewById(R.id.post_image);
 
-//            holder.username = (TextView) convertView.findViewById(R.id.username);
-//            holder.image = (ImageView) convertView.findViewById(R.id.post_image);
-//            holder.heartRed = (ImageView) convertView.findViewById(R.id.image_heart_red);
-//            holder.heartWhite = (ImageView) convertView.findViewById(R.id.image_heart);
-//            holder.comment = (ImageView) convertView.findViewById(R.id.speech_bubble);
-//            holder.likes = (TextView) convertView.findViewById(R.id.image_likes);
-//            holder.comments = (TextView) convertView.findViewById(R.id.image_comments_link);
-//            holder.caption = (TextView) convertView.findViewById(R.id.image_caption);
-//            holder.timeDetla = (TextView) convertView.findViewById(R.id.image_time_posted);
-//            holder.mprofileImage = (ImageView) convertView.findViewById(R.id.profile_photo);
-            //holder.heart = new Heart(holder.heartWhite, holder.heartRed);
             holder.photo = getItem(position);
             holder.detector = new GestureDetector(mContext, new GestureListener(holder));
             holder.users = new StringBuilder();
-
             convertView.setTag(holder);
 
         }
@@ -142,7 +133,7 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo>
             public void onClick(View v)
             {
 //                Log.d(TAG, "onClick: loading comment thread for " + getItem(position).getPhoto_id());
-//                ((HomeActivity)mContext).onCommentThreadSelected(getItem(position), mContext.getString(R.string.home_activity));
+//                ((FeedActivity)mContext).onCommentThreadSelected(getItem(position), mContext.getString(R.string.home_activity));
 //
 //                //going to need to do something else?
 //                ((HomeActivity)mContext).hideLayout();
@@ -198,6 +189,7 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo>
 
                     });
 
+                    //todo: create the flow to the users profile other than current users
                     imageLoader.displayImage(singleSnapshot.getValue(UserAccountSettings.class).getProfile_photo(),holder.mprofileImage);
                     holder.mprofileImage.setOnClickListener(new View.OnClickListener()
                     {
@@ -209,24 +201,24 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo>
 
                             Intent intent = new Intent(mContext, ProfileActivity.class);
                             intent.putExtra(mContext.getString(R.string.calling_activity),mContext.getString(R.string.home_activity));
-
                             intent.putExtra(mContext.getString(R.string.intent_user), holder.user);
+
                             mContext.startActivity(intent);
                         }
                     });
 
 
-                    holder.settings = singleSnapshot.getValue(UserAccountSettings.class);
-                    holder.comment.setOnClickListener(new View.OnClickListener()
-                    {
-                        @Override
-                        public void onClick(View v)
-                        {
-//                            ((HomeActivity)mContext).onCommentThreadSelected(getItem(position), mContext.getString(R.string.home_activity));
+//                    holder.settings = singleSnapshot.getValue(UserAccountSettings.class);
 //
-//                            ((HomeActivity)mContext).hideLayout();
-                        }
-                    });
+//                    holder.comment.setOnClickListener(new View.OnClickListener()
+//                    {
+//                        @Override
+//                        public void onClick(View v)
+//                        {
+////                            ((HomeActivity)mContext).onCommentThreadSelected(getItem(position), mContext.getString(R.string.home_activity));
+////                            ((HomeActivity)mContext).hideLayout();
+//                        }
+//                    });
                 }
 
             }
@@ -300,7 +292,8 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo>
         }
     }
 
-    public class GestureListener extends GestureDetector.SimpleOnGestureListener{
+    public class GestureListener extends GestureDetector.SimpleOnGestureListener
+    {
 
         ViewHolder mHolder;
         public GestureListener(ViewHolder holder) {
@@ -375,7 +368,8 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo>
         }
     }
 
-    private void addNewLike(final ViewHolder holder){
+    private void addNewLike(final ViewHolder holder)
+    {
         Log.d(TAG, "addNewLike: adding new like");
 
         String newLikeID = mReference.push().getKey();
@@ -514,7 +508,8 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo>
 
             }
         });
-        }catch (NullPointerException e){
+        }
+        catch (NullPointerException e){
             Log.e(TAG, "getLikesString: NullPointerException: " + e.getMessage() );
             holder.likesString = "";
             holder.likeByCurrentUser = false;
@@ -523,38 +518,40 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo>
         }
     }
 
-    private void setupLikesString(final ViewHolder holder, String likesString){
-        Log.d(TAG, "setupLikesString: likes string:" + holder.likesString);
-
-        if(holder.likeByCurrentUser){
-            Log.d(TAG, "setupLikesString: photo is liked by current user");
-            holder.heartWhite.setVisibility(View.GONE);
-            holder.heartRed.setVisibility(View.VISIBLE);
-            holder.heartRed.setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
-                    return holder.detector.onTouchEvent(event);
-                }
-            });
-        }else{
-            Log.d(TAG, "setupLikesString: photo is not liked by current user");
-            holder.heartWhite.setVisibility(View.VISIBLE);
-            holder.heartRed.setVisibility(View.GONE);
-            holder.heartWhite.setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
-                    return holder.detector.onTouchEvent(event);
-                }
-            });
-        }
-        holder.likes.setText(likesString);
+    private void setupLikesString(final ViewHolder holder, String likesString)
+    {
+//        Log.d(TAG, "setupLikesString: likes string:" + holder.likesString);
+//
+//        if(holder.likeByCurrentUser){
+//            Log.d(TAG, "setupLikesString: photo is liked by current user");
+//            holder.heartWhite.setVisibility(View.GONE);
+//            holder.heartRed.setVisibility(View.VISIBLE);
+//            holder.heartRed.setOnTouchListener(new View.OnTouchListener() {
+//                @Override
+//                public boolean onTouch(View v, MotionEvent event) {
+//                    return holder.detector.onTouchEvent(event);
+//                }
+//            });
+//        }else{
+//            Log.d(TAG, "setupLikesString: photo is not liked by current user");
+//            holder.heartWhite.setVisibility(View.VISIBLE);
+//            holder.heartRed.setVisibility(View.GONE);
+//            holder.heartWhite.setOnTouchListener(new View.OnTouchListener() {
+//                @Override
+//                public boolean onTouch(View v, MotionEvent event) {
+//                    return holder.detector.onTouchEvent(event);
+//                }
+//            });
+//        }
+//        holder.likes.setText(likesString);
     }
 
     /**
      * Returns a string representing the number of days ago the post was made
      * @return
      */
-    private String getTimestampDifference(Photo photo){
+    private String getTimestampDifference(Photo photo)
+    {
         Log.d(TAG, "getTimestampDifference: getting timestamp difference.");
 
         String difference = "";
@@ -565,10 +562,13 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo>
         sdf.format(today);
         Date timestamp;
         final String photoTimestamp = photo.getDate_created();
-        try{
+        try
+        {
             timestamp = sdf.parse(photoTimestamp);
             difference = String.valueOf(Math.round(((today.getTime() - timestamp.getTime()) / 1000 / 60 / 60 / 24 )));
-        }catch (ParseException e){
+        }
+        catch (ParseException e)
+        {
             Log.e(TAG, "getTimestampDifference: ParseException: " + e.getMessage() );
             difference = "0";
         }

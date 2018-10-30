@@ -94,7 +94,6 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
         setupBottomNavigationView();
         setupFirebaseAuth();
         initImageLoader();
-
         getUserPhoto();
 
 
@@ -251,9 +250,7 @@ public class HomeActivity extends AppCompatActivity implements FragmentMap.dataP
                         Map<String, Object> objectMap = (HashMap<String, Object>) singleSnapshot.getValue();
 
                         photo.setCaption(objectMap.get(getString(R.string.field_caption)).toString());
-//                        photo.setTags(objectMap.get(getString(R.string.field_tags)).toString());
                         photo.setPhoto_id(objectMap.get(getString(R.string.field_photo_id)).toString());
-//                        photo.setUser_id(objectMap.get(getString(R.string.field_user_id)).toString());
                         photo.setLocation(objectMap.get(getString(R.string.field_location)).toString());
                         photo.setLocationlong(objectMap.get(getString(R.string.field_locationlong)).toString());
 

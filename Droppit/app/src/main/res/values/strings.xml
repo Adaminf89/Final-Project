@@ -61,6 +61,7 @@
     <string name="field_image_path">image_path</string>
     <string name="field_comments">comments</string>
     <string name="account_settings">Account Settings</string>
+    <string name="view_all_3_comments">View all 3 comments</string>
 
 
 </resources>

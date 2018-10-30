@@ -33,13 +33,17 @@
             android:id="@+id/btn_info"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:textColor="@color/offWhite"
             android:layout_below="@id/btn_logout"
+            android:background="@drawable/rec_button"
             android:text="Logout" />
 
         <Button
             android:id="@+id/btn_about"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:textColor="@color/offWhite"
+            android:background="@drawable/rec_button"
             android:layout_below="@id/btn_info"
             android:text="About" />
 

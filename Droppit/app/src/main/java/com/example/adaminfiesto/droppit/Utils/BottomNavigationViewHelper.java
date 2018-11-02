@@ -9,6 +9,7 @@ import android.view.MenuItem;
 
 import com.example.adaminfiesto.droppit.AR.ARActivity;
 import com.example.adaminfiesto.droppit.Feed.FeedActivity;
+import com.example.adaminfiesto.droppit.Google.GoogleActivity;
 import com.example.adaminfiesto.droppit.Main.HomeActivity;
 import com.example.adaminfiesto.droppit.R;
 import com.example.adaminfiesto.droppit.Search.SearchActivity;
@@ -41,18 +42,26 @@ public class BottomNavigationViewHelper
                 {
                     case R.id.ic_home:
 
-                        Intent intentHome = new Intent(context, HomeActivity.class);
+                        Intent intentHome = new Intent(context, GoogleActivity.class);
                         intentHome.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                         context.startActivity(intentHome);
                         callingActivity.overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
 
                         break;
 
-                    case R.id.ic_search:
+//                    case R.id.ic_search:
+//
+//                        Intent intentSea = new Intent(context, SearchActivity.class);
+//                        intentSea.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+//                        context.startActivity(intentSea);
+//                        callingActivity.overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+//                        break;
 
-                        Intent intentSea = new Intent(context, SearchActivity.class);
-                        intentSea.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                        context.startActivity(intentSea);
+                    case R.id.ic_feed:
+
+                        Intent intentFeed = new Intent(context, FeedActivity.class);
+                        intentFeed.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        context.startActivity(intentFeed);
                         callingActivity.overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
                         break;
 
@@ -63,20 +72,14 @@ public class BottomNavigationViewHelper
                         context.startActivity(intentAcc);
                         callingActivity.overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
                         break;
-                    case R.id.ic_feed:
 
-                        Intent intentFeed = new Intent(context, FeedActivity.class);
-                        intentFeed.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                        context.startActivity(intentFeed);
-                        callingActivity.overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
-                        break;
-                    case R.id.ic_vr:
-
-                        Intent intentAR = new Intent(context, ARActivity.class);
-                        intentAR.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                        context.startActivity(intentAR);
-                        callingActivity.overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
-                        break;
+//                    case R.id.ic_vr:
+//
+//                        Intent intentAR = new Intent(context, ARActivity.class);
+//                        intentAR.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+//                        context.startActivity(intentAR);
+//                        callingActivity.overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+//                        break;
                 }
                 return false;
             }

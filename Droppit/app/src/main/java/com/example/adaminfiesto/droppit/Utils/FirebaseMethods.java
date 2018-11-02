@@ -1,5 +1,4 @@
 package com.example.adaminfiesto.droppit.Utils;
-
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -7,10 +6,10 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.widget.Toast;
-
 import com.example.adaminfiesto.droppit.DataModels.Like;
 import com.example.adaminfiesto.droppit.DataModels.Photo;
 import com.example.adaminfiesto.droppit.DataModels.UserSettings;
+import com.example.adaminfiesto.droppit.Google.GoogleActivity;
 import com.example.adaminfiesto.droppit.Main.HomeActivity;
 import com.example.adaminfiesto.droppit.R;
 import com.example.adaminfiesto.droppit.DataModels.User;
@@ -33,11 +32,8 @@ import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 import java.util.TimeZone;
 
 public class FirebaseMethods
@@ -108,6 +104,44 @@ public class FirebaseMethods
         }
     }
 
+    public void updateEvent(String photoID, String imgUrl)
+    {
+
+        //todo tweak the back feat for when edit is done
+        myRef.child("photos")
+                .child(photoID)
+                .child("image_path")
+                .setValue(imgUrl);
+
+
+        Query q = myRef.child("user_photos");
+
+        q.addValueEventListener(new ValueEventListener()
+        {
+
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot)
+            {
+                //users in node
+                for(DataSnapshot singleSnapshot : dataSnapshot.getChildren())
+                {
+                    //photos
+                    for(DataSnapshot photo : singleSnapshot.getChildren())
+                    {
+                        photo.getRef().child(photoID).child("image_path").setValue(imgUrl);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError)
+            {
+
+            }
+        });
+
+    }
+
     //update username in the 'users' node and 'user_account_settings' node @param username
     public void updateUsername(String username)
     {
@@ -123,7 +157,6 @@ public class FirebaseMethods
                 .child(mContext.getString(R.string.field_username))
                 .setValue(username);
     }
-
 
     public void sendVerificationEmail()
     {
@@ -342,6 +375,7 @@ public class FirebaseMethods
         myRef.child(mContext.getString(R.string.dbname_user_photos)).child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child(newPhotoKey).setValue(photo);
         myRef.child(mContext.getString(R.string.dbname_photos)).child(newPhotoKey).setValue(photo);
 
+
     }
 
     public UserAccountSettings getProfilePhoto(DataSnapshot dataSnapshot, String id)
@@ -393,16 +427,23 @@ public class FirebaseMethods
 
     public void setLikesPhoto(Like Like, String photokey)
     {
+
         myRef.child("Likes")
                 .child(userID)
                 .child(photokey)
                 .setValue(Like);
+
+        //todo create another node for pure ratings that just has the Like number under the photo id's
+        //todo that way we can just pull it and adverage the numbers
     }
 
+    public void setGeoTrending()
+    {
 
+    }
 
     //add the photos to the database
-    public void uploadNewPhoto(String photoType, final String caption, final String privatedata, final int count, final String imgUrl, Bitmap bm, final String location, final String locationlong)
+    public void uploadNewPhoto(String photoType, final String caption, final String privatedata, final int count, final String imgUrl, Bitmap bm, final String location, final String locationlong, final String photoId)
     {
         Log.d(TAG, "uploadNewPhoto: attempting to uplaod new photo.");
 
@@ -447,7 +488,7 @@ public class FirebaseMethods
                                 //add the new photo to 'photos' node and 'user_photos' node
                                 addPhotoToDatabase(caption, firebaseUrl.toString(), location, locationlong, privatedata);
 
-                                Intent intent = new Intent(mContext, HomeActivity.class);
+                                Intent intent = new Intent(mContext, GoogleActivity.class);
                                 //intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                 mContext.startActivity(intent);
                             }
@@ -480,7 +521,6 @@ public class FirebaseMethods
             });
 
         }
-
         //case new profile photo
         else if(photoType.equals(mContext.getString(R.string.profile_photo)))
         {
@@ -514,8 +554,6 @@ public class FirebaseMethods
                         {
                             Uri firebaseurl = uri;
                             setProfilePhoto(firebaseurl.toString());
-
-
                         }
                     });
 
@@ -541,17 +579,59 @@ public class FirebaseMethods
                         Toast.makeText(mContext, "photo upload progress: " + String.format("%.0f", progress) + "%", Toast.LENGTH_SHORT).show();
                         mPhotoUploadProgress = progress;
                     }
-
-                    //TODO:implement navback
-                    //navigate to the main feed so the user can see their photo
-                    Intent intent = new Intent(mContext, HomeActivity.class);
-                    //intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    mContext.startActivity(intent);
-
                     Log.d(TAG, "onProgress: upload progress: " + progress + "% done");
                 }
             });
         }
+        else if (photoType.equals("detail"))
+            {
+
+                String user_id = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+                final StorageReference storageReference = mStorageReference.child(filePaths.FIREBASE_IMAGE_STORAGE + "/" + user_id + "/profile_photo");
+
+                //convert image url to bitmap
+                if(bm == null)
+                {
+                    bm = ImageManagers.getBitmap(imgUrl);
+                }
+
+                byte[] bytes = ImageManagers.getBytesFromBitmap(bm, 100);
+
+                UploadTask uploadTask = null;
+                uploadTask = storageReference.putBytes(bytes);
+
+                uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>()
+                {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot)
+                    {
+                        storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>()
+                        {
+                            @Override
+                            public void onSuccess(Uri uri)
+                            {
+                                Uri firebaseUrl = uri;
+                                updateEvent(photoId, firebaseUrl.toString());
+
+//                        Toast.makeText(mContext, "photo upload success", Toast.LENGTH_SHORT).show();
+//                        //add the new photo to 'photos' node and 'user_photos' node
+//                        addPhotoToDatabase(caption, firebaseUrl.toString(), location, locationlong, privatedata);
+
+                            }
+                        }).addOnFailureListener(new OnFailureListener()
+                        {
+                            @Override
+                            public void onFailure(@NonNull Exception e)
+                            {
+                                Log.d(TAG, "onFailure: Photo upload failed.");
+                                Toast.makeText(mContext, "Photo upload failed ", Toast.LENGTH_SHORT).show();
+                            }
+
+                        });
+                    }
+                });
+            }
 
     }
 

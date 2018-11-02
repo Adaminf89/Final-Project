@@ -1,7 +1,9 @@
 package com.example.adaminfiesto.droppit.Detail;
 
 import android.app.FragmentManager;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -18,10 +20,12 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.adaminfiesto.droppit.AR.ARActivity;
 import com.example.adaminfiesto.droppit.DataModels.Like;
 import com.example.adaminfiesto.droppit.DataModels.Photo;
 import com.example.adaminfiesto.droppit.DataModels.UserAccountSettings;
 import com.example.adaminfiesto.droppit.DataModels.UserSettings;
+import com.example.adaminfiesto.droppit.Edit.EditActivity;
 import com.example.adaminfiesto.droppit.Main.HomeActivity;
 import com.example.adaminfiesto.droppit.Main.NextActivity;
 import com.example.adaminfiesto.droppit.R;
@@ -58,6 +62,7 @@ public class DetailFragmentPublic extends Fragment
     CircleImageView ivDropPhoto;
     CircleImageView ivProfilePhoto;
     ImageView ivNavBtn;
+    ImageView ivAR;
     Button deleteBtn;
     Button addBtn;
     Button editBtn;
@@ -98,6 +103,7 @@ public class DetailFragmentPublic extends Fragment
         tvDistance = view.findViewById(R.id.textDistance);
         ivDropPhoto = (CircleImageView) view.findViewById(R.id.event_image);
         ivProfilePhoto = (CircleImageView) view.findViewById(R.id.images_public);
+        ivAR = view.findViewById(R.id.ArImage);
         deleteBtn = view.findViewById(R.id.delete_btn);
         addBtn = view.findViewById(R.id.add_btn);
         editBtn = view.findViewById(R.id.edit_btn);
@@ -133,25 +139,55 @@ public class DetailFragmentPublic extends Fragment
                 addBtn.setVisibility(View.VISIBLE);
             }
 
-//        if(checker == 1)
-//        {
-//            commentBtn.setVisibility(View.GONE);
-//            addBtn.setVisibility(View.GONE);
-//            rbar.setVisibility(View.GONE);
-//        }
+            ivAR.setOnClickListener(new View.OnClickListener()
+            {
+                @Override
+                public void onClick(View v)
+                {
+                    SharedPreferences sharedPreferences = getActivity().getSharedPreferences("arID", Context.MODE_PRIVATE);
+                    SharedPreferences.Editor ed = sharedPreferences.edit();
+                    ed.putString("lat", pData.getLocation());
+                    ed.putString("long",pData.getLocationlong());
+                    ed.putString("caption", pData.getCaption());
+                    ed.apply();
+
+                    Intent intentHome = new Intent(getContext(), ARActivity.class);
+                    intentHome.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    getContext().startActivity(intentHome);
+                    getActivity().overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+                }
+            });
+
+        editBtn.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                SharedPreferences sharedPreferences = getActivity().getSharedPreferences("edit", Context.MODE_PRIVATE);
+                SharedPreferences.Editor ed = sharedPreferences.edit();
+                ed.putString("UUID", pData.getUser_id());
+                ed.putString("photo",pData.getImage_path());
+                ed.putString("photoID", pData.getPhoto_id());
+                ed.putString("caption", pData.getCaption());
+                ed.apply();
+
+                Intent intentEdit = new Intent(getContext(), EditActivity.class);
+                intentEdit.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                getContext().startActivity(intentEdit);
+                getActivity().overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+            }
+        });
 
         commentBtn.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View v)
             {
-
                 Intent intentCom = new Intent(getContext(), CommentActivity.class);
                 intentCom.putExtra("ComData", pData);
                 intentCom.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 getContext().startActivity(intentCom);
                 getActivity().overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
-
             }
         });
 
@@ -218,6 +254,8 @@ public class DetailFragmentPublic extends Fragment
         return view;
     }
 
+
+
     public String getTimestampDifference(Photo photo)
     {
         Log.d(TAG, "getTimestampDifference: getting timestamp difference.");
@@ -241,7 +279,6 @@ public class DetailFragmentPublic extends Fragment
         }
         return difference +" days ago";
     }
-
 
     private void setProfileWidgets(UserSettings userSettings, DataSnapshot dataSnapshot)
     {

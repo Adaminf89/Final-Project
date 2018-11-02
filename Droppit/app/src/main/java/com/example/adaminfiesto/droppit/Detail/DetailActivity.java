@@ -65,7 +65,6 @@ public class DetailActivity extends AppCompatActivity
         pdata = new Photo();
         mPhotos = new ArrayList<>();
         mUsers = new ArrayList<>();
-
         getSharedData();
         setupFirebaseAuth();
         getPhotos();
@@ -77,7 +76,6 @@ public class DetailActivity extends AppCompatActivity
         Intent getIntent = getIntent();
         String checker = getIntent.getStringExtra(String.valueOf(R.string.to_detail));
 
-
         if(checker.equals("detail"))
         {
 
@@ -87,7 +85,7 @@ public class DetailActivity extends AppCompatActivity
             {
                 DetailFragmentPrivate fragment = new DetailFragmentPrivate();
                 FragmentTransaction transaction = DetailActivity.this.getSupportFragmentManager().beginTransaction();
-                transaction.replace(R.id.container, fragment.newInstance(pdata));
+                transaction.replace(R.id.container, fragment.newInstance(pdata, comingFrom));
                 //transaction.addToBackStack(getString(R.string.profile_fragment));
                 transaction.commit();
             }
@@ -98,7 +96,6 @@ public class DetailActivity extends AppCompatActivity
                     transaction.replace(R.id.container, fragment.newInstance(pdata, comingFrom));
                     transaction.commit();
                 }
-
         }
     }
 
@@ -107,7 +104,6 @@ public class DetailActivity extends AppCompatActivity
         SharedPreferences sharedPreferences = getSharedPreferences("photoID", Context.MODE_PRIVATE);
         photoID = sharedPreferences.getString("photo","");
         comingFrom = sharedPreferences.getInt("checker", 0 );
-
     }
 
     private void getPhotos()
@@ -150,7 +146,6 @@ public class DetailActivity extends AppCompatActivity
                     }
 
                     pdata.setComments(comments);
-
                     getData();
                 }
             }

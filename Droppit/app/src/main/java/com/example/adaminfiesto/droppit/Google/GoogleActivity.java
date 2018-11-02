@@ -1,6 +1,6 @@
-package com.example.adaminfiesto.droppit.Main;
+package com.example.adaminfiesto.droppit.Google;
+
 import android.Manifest;
-import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -13,21 +13,21 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.FrameLayout;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
+
 import com.example.adaminfiesto.droppit.DataModels.Photo;
 import com.example.adaminfiesto.droppit.Login.LoginActivity;
+import com.example.adaminfiesto.droppit.Main.FragmentMap;
+import com.example.adaminfiesto.droppit.Main.HomeActivity;
+import com.example.adaminfiesto.droppit.Main.NextActivity;
 import com.example.adaminfiesto.droppit.R;
 import com.example.adaminfiesto.droppit.Utils.BottomNavigationViewHelper;
 import com.example.adaminfiesto.droppit.Utils.Permissions;
-import com.example.adaminfiesto.droppit.Utils.UniversalImageLoader;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.LatLng;
@@ -41,22 +41,19 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
-import com.nostra13.universalimageloader.core.ImageLoader;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import static android.support.constraint.Constraints.TAG;
+import java.util.concurrent.CountDownLatch;
 
-
-public class HomeActivity extends AppCompatActivity
+public class GoogleActivity extends AppCompatActivity
 {
-
-    public Context mContext = HomeActivity.this;
+    public Context mContext = GoogleActivity.this;
     private static final int ACTIVITY_NUM = 0;
-    private static final int VERIFY_PERMISSIONS_REQUEST = 1;
-    private static final int  CAMERA_REQUEST_CODE = 5;
+    private static final int VERIFY_PERMISSIONS_REQUEST = 2;
+    private static final int  CAMERA_REQUEST_CODE = 4;
     //firebase
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
@@ -76,7 +73,8 @@ public class HomeActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_home);
+        setContentView(R.layout.activity_map);
+
         fab = findViewById(R.id.floatingActionButton);
         progressBar = findViewById(R.id.progressBarMap);
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(mContext);
@@ -88,22 +86,22 @@ public class HomeActivity extends AppCompatActivity
         getUserPhoto();
 
         Log.i(TAG, "....: map should be here ");
-
-        if(checkPermissionsArray(Permissions.PERMISSIONS))
-        {
-            getUserPhoto();
-        }
-        else
-        {
-            verifyPermissions(Permissions.PERMISSIONS);
-        }
+//
+//        if(checkPermissionsArray(Permissions.PERMISSIONS))
+//        {
+//            getUserPhoto();
+//        }
+//        else
+//        {
+//            verifyPermissions(Permissions.PERMISSIONS);
+//        }
 
         fab.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View v)
             {
-                if(HomeActivity.this.checkPermissions(Permissions.CAMERA_PERMISSION[0]))
+                if(GoogleActivity.this.checkPermissions(Permissions.CAMERA_PERMISSION[0]))
                 {
                     Log.d(TAG, "onClick: starting camera");
                     //send the location alone via broadcast
@@ -117,10 +115,7 @@ public class HomeActivity extends AppCompatActivity
                 }
             }
         });
-
-
     }
-
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
@@ -146,7 +141,6 @@ public class HomeActivity extends AppCompatActivity
 
                 SharedPreferences sharedPreferences = getSharedPreferences("Test", Context.MODE_PRIVATE);
                 SharedPreferences.Editor ed = sharedPreferences.edit();
-
                 ed.putFloat("lat", (float) thePlaceToShow.latitude);
                 ed.putFloat("long", (float) thePlaceToShow.longitude);
                 ed.apply();
@@ -164,32 +158,6 @@ public class HomeActivity extends AppCompatActivity
         {
             return;
         }
-    }
-
-    //this is the first screen that will A. Load for the user and B utilize the imageloader for maps
-    private void initImageLoader()
-    {
-        UniversalImageLoader universalImageLoader = new UniversalImageLoader(mContext);
-        ImageLoader.getInstance().init(universalImageLoader.getConfig());
-    }
-
-    private void setupViewPager()
-    {
-        checker(mPhotos);
-
-//        if(cPhotos.size() > 0)
-//        {
-
-            FragmentMap fragment = new FragmentMap();
-            FragmentTransaction transaction = HomeActivity.this.getSupportFragmentManager().beginTransaction();
-            transaction.replace(R.id.container2, FragmentMap.newInstance(cPhotos));
-//        transaction.addToBackStack("FragmentMap");
-            transaction.commitAllowingStateLoss();
-//        }
-//        else
-//            {
-//                return;
-//            }
     }
 
     private void getUserPhoto()
@@ -228,6 +196,7 @@ public class HomeActivity extends AppCompatActivity
 
     private void getPhotos()
     {
+        CountDownLatch done = new CountDownLatch(1);
 
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
 
@@ -256,6 +225,7 @@ public class HomeActivity extends AppCompatActivity
                         mPhotos.add(photo);
                     }
 
+                    checker(mPhotos);
                     setupViewPager();
                 }
                 @Override
@@ -264,10 +234,16 @@ public class HomeActivity extends AppCompatActivity
 
                 }
             });
+
         }
 
     }
 
+    private void setupViewPager()
+    {
+        GoogleFragment frag = GoogleFragment.newInstance(cPhotos);
+        getFragmentManager().beginTransaction().replace(R.id.frameFrag, frag, GoogleFragment.TAG).commitAllowingStateLoss();
+    }
 
     public ArrayList<Photo> checker (ArrayList<Photo> P)
     {
@@ -298,7 +274,7 @@ public class HomeActivity extends AppCompatActivity
                     LatLng latM = new LatLng(Double.valueOf(i.getLocation()), Double.valueOf(i.getLocationlong()));
                     double dis = CalculationByDistance(latM, thePlaceToShow);
 
-                    if (dis > 10.0f)
+                    if (dis < 10.0f)
                     {
                         cPhotos.add(i);
                     }
@@ -356,14 +332,14 @@ public class HomeActivity extends AppCompatActivity
     {
         Log.d(TAG, "verifyPermissions: verifying permissions.");
 
-        ActivityCompat.requestPermissions(HomeActivity.this, permissions, VERIFY_PERMISSIONS_REQUEST);
+        ActivityCompat.requestPermissions(GoogleActivity.this, permissions, VERIFY_PERMISSIONS_REQUEST);
     }
 
     public boolean checkPermissions(String permission)
     {
         Log.d(TAG, "checkPermissions: checking permission: " + permission);
 
-        int permissionRequest = ActivityCompat.checkSelfPermission(HomeActivity.this, permission);
+        int permissionRequest = ActivityCompat.checkSelfPermission(GoogleActivity.this, permission);
         //check go or no
         if(permissionRequest != PackageManager.PERMISSION_GRANTED)
         {
@@ -435,8 +411,14 @@ public class HomeActivity extends AppCompatActivity
     protected void onPause()
     {
         super.onPause();
-//        mPhotos.clear();
-//        mUsers.clear();
+        //mPhotos.clear();
+    }
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        //getUserPhoto();
     }
 
     @Override
@@ -444,42 +426,16 @@ public class HomeActivity extends AppCompatActivity
     {
         super.onStart();
         mAuth.addAuthStateListener(mAuthListener);
-
     }
 
     @Override
     public void onStop()
     {
         super.onStop();
-        mPhotos.clear();
-        mUsers.clear();
         if (mAuthListener != null)
         {
             mAuth.removeAuthStateListener(mAuthListener);
-            progressBar.setVisibility(View.GONE);
+//            progressBar.setVisibility(View.GONE);
         }
     }
-
-    @Override
-    protected void onDestroy()
-    {
-        super.onDestroy();
-    }
-
-    //TODO:Reload the fragment
-    @Override
-    protected void onResume()
-    {
-        super.onResume();
-        mPhotos.clear();
-        getUserPhoto();
-        Log.d(TAG, "onResume: " + dalocation);
-    }
-
-
-//    @Override
-//    public void location(LatLng lat) {
-//        dalocation = lat;
-//    }
-
 }

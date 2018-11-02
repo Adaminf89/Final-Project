@@ -93,8 +93,6 @@ public class ViewCommentsFragment extends Fragment
         CommentListAdapter adapter = new CommentListAdapter(mContext, R.layout.layout_comment, mComments);
         mListView.setAdapter(adapter);
 
-
-
         tvAdd.setOnClickListener(new View.OnClickListener()
         {
 

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/backgroundBlue"
+        android:padding="20dp">
+
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:id="@+id/edit_profile_photo"
+            android:layout_marginTop="20dp"
+            android:layout_centerHorizontal="true"
+            app:civ_border_color="@color/offWhite"
+            app:civ_border_width="2dp"
+            />
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Change Photo"
+            android:id="@+id/changeProfilePhoto"
+            android:layout_below="@+id/edit_profile_photo"
+            android:layout_centerHorizontal="true"
+            android:textColor="@color/link_blue"
+            android:textSize="16sp"
+            />
+
+        <!-- username section -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_below="@+id/changeProfilePhoto"
+            android:layout_marginTop="80dp"
+            android:id="@+id/relLayout1"
+            >
+
+            <!--<ImageView-->
+            <!--android:layout_width="35dp"-->
+            <!--android:layout_height="35dp"-->
+            <!--android:src="@drawable/ic_username"-->
+            <!--android:layout_centerVertical="true"/>-->
+
+            <EditText
+                android:id="@+id/edit_caption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="40dp"
+                android:background="@null"
+                android:hint="caption"
+                android:inputType="textNoSuggestions"
+                android:textColorHint="@color/offWhite" />
+
+        </RelativeLayout>
+
+        <Button
+            android:id="@+id/save_btn"
+            android:layout_width="353dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="176dp"
+            android:textColor="@color/offWhite"
+            android:background="@drawable/rec_button"
+            android:text="Save" />
+
+    </RelativeLayout>
+
+</RelativeLayout>

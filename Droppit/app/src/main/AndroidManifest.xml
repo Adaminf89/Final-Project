@@ -51,6 +51,8 @@
         <activity android:name=".AR.ARActivity"/>
         <activity android:name=".Detail.CommentActivity"/>
         <activity android:name=".Feed.FeedActivity"/>
+        <activity android:name=".Edit.EditActivity"/>
+        <activity android:name=".Google.GoogleActivity"/>
         <meta-data android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version"/>
         <meta-data android:name="com.google.ar.core" android:value="optional" />

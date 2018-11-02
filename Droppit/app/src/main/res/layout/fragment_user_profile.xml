@@ -4,6 +4,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <Button
+        android:id="@+id/unfollowbtn"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="138dp"
+        android:textColor="@color/offWhite"
+        android:background="@drawable/round_button"
+        android:text="UNFOLLOW" />
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -19,17 +29,17 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/relLayout1"
         android:id="@+id/relLayout2">
-        <!--<include layout="@layout/snippet_top_profile"/>-->
+
         <include layout="@layout/layout_center_profile" />
 
     </RelativeLayout>
 
     <ProgressBar
+        android:id="@+id/profileProgressBar"
         android:layout_width="150dp"
         android:layout_height="150dp"
-        android:id="@+id/profileProgressBar"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="100dp"/>
+        android:layout_marginTop="100dp" />
 
     <include layout="@layout/layout_bottom_nav_view" />
 

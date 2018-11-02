@@ -1,19 +1,7 @@
 package com.example.adaminfiesto.droppit.Utils;
 
-/**
- * Created by John on 02/03/2018.
- */
-
 public class LocationUtils {
 
-    /**
-     * Bearing in degrees between two coordinates.
-     * @param lat1
-     * @param lon1
-     * @param lat2
-     * @param lon2
-     * @return
-     */
     public static double bearing(double lat1, double lon1, double lat2, double lon2){
         double longitude1 = lon1;
         double longitude2 = lon2;
@@ -26,16 +14,6 @@ public class LocationUtils {
         return (Math.toDegrees(Math.atan2(y, x))+360)%360;
     }
 
-    /**
-     * Distance in metres between two coordinates
-     * @param lat1
-     * @param lat2
-     * @param lon1
-     * @param lon2
-     * @param el1 - Elevation 1
-     * @param el2 - Elevation 2
-     * @return
-     */
     public static double distance(double lat1, double lat2, double lon1,
                                   double lon2, double el1, double el2) {
 

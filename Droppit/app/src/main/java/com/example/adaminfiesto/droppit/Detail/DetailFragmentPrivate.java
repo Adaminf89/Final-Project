@@ -20,11 +20,13 @@ import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
+import com.example.adaminfiesto.droppit.AR.ARActivity;
 import com.example.adaminfiesto.droppit.DataModels.Comment;
 import com.example.adaminfiesto.droppit.DataModels.Like;
 import com.example.adaminfiesto.droppit.DataModels.Photo;
 import com.example.adaminfiesto.droppit.DataModels.UserAccountSettings;
 import com.example.adaminfiesto.droppit.DataModels.UserSettings;
+import com.example.adaminfiesto.droppit.Edit.EditActivity;
 import com.example.adaminfiesto.droppit.Main.HomeActivity;
 import com.example.adaminfiesto.droppit.R;
 import com.example.adaminfiesto.droppit.Search.SearchActivity;
@@ -61,6 +63,7 @@ public class DetailFragmentPrivate extends Fragment
     TextView tvDropTitle;
     ImageView ivDropPhoto;
     ImageView ivNavBtn;
+    ImageView ivAR;
     Button deleteBtn;
     Button addBtn;
     Button editBtn;
@@ -82,12 +85,13 @@ public class DetailFragmentPrivate extends Fragment
     private String Uuid;
 
     //photo data that is needed to be passed.
-    public static DetailFragmentPrivate newInstance(Photo pdata)
+    public static DetailFragmentPrivate newInstance(Photo pdata, Integer checker)
     {
         Bundle args = new Bundle();
         DetailFragmentPrivate fragment = new DetailFragmentPrivate();
         fragment.setArguments(args);
         args.putParcelable("Photo", pdata);
+        args.putInt("c",checker);
         return fragment;
     }
 
@@ -102,25 +106,29 @@ public class DetailFragmentPrivate extends Fragment
         tvDropTitle = view.findViewById(R.id.dropName);
         tvDistance = view.findViewById(R.id.textDistance);
         ivDropPhoto = view.findViewById(R.id.event_image);
+        ivAR = view.findViewById(R.id.ArImage);
         deleteBtn = view.findViewById(R.id.delete_btn);
         addBtn = view.findViewById(R.id.add_btn);
         editBtn = view.findViewById(R.id.edit_btn);
         commentBtn = view.findViewById(R.id.comment_btn);
         ivNavBtn = view.findViewById(R.id.navigationBtn);
         rbar = view.findViewById(R.id.ratingBar);
+
+
         mFirebaseMethods = new FirebaseMethods(getActivity());
         currentUser = mAuth.getInstance().getCurrentUser();
         Uuid = currentUser.getUid().toString();
         loadedLike = new Like();
 
         setupFirebaseAuth();
+
         //user the passed data from arg
         if(getArguments() != null)
         {
             pData = (Photo) getArguments().getParcelable("Photo");
             checker = getArguments().getInt("c");
-
         }
+
         //show the btn if this drop matches the user id
         if(pData.getUser_id().equals(Uuid))
         {
@@ -135,6 +143,47 @@ public class DetailFragmentPrivate extends Fragment
             addBtn.setVisibility(View.VISIBLE);
         }
 
+
+        ivAR.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                SharedPreferences sharedPreferences = getActivity().getSharedPreferences("arID", Context.MODE_PRIVATE);
+                SharedPreferences.Editor ed = sharedPreferences.edit();
+                ed.putString("lat", pData.getLocation());
+                ed.putString("long",pData.getLocationlong());
+                ed.putString("caption", pData.getCaption());
+                ed.apply();
+
+                Intent intentHome = new Intent(getContext(), ARActivity.class);
+                intentHome.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                getContext().startActivity(intentHome);
+                getActivity().overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+            }
+        });
+
+        editBtn.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+
+                SharedPreferences sharedPreferences = getActivity().getSharedPreferences("edit", Context.MODE_PRIVATE);
+                SharedPreferences.Editor ed = sharedPreferences.edit();
+                ed.putString("UUID", pData.getUser_id());
+                ed.putString("photo",pData.getImage_path());
+                ed.putString("photoID", pData.getPhoto_id());
+                ed.putString("caption", pData.getCaption());
+                ed.apply();
+
+
+                Intent intentEdit = new Intent(getContext(), EditActivity.class);
+                intentEdit.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                getContext().startActivity(intentEdit);
+                getActivity().overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+            }
+        });
 
         commentBtn.setOnClickListener(new View.OnClickListener()
         {
@@ -207,15 +256,6 @@ public class DetailFragmentPrivate extends Fragment
                 mFirebaseMethods.setLikesPhoto(thisLike, pData.getPhoto_id());
             }
         });
-
-        editBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v)
-            {
-
-            }
-        });
-
 
         getLikes(pData.getPhoto_id());
 

@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Build;
@@ -63,6 +64,9 @@ public class ARActivity extends AppCompatActivity
     private static final String TAG = ARActivity.class.getSimpleName();
     public Context mContext = ARActivity.this;
     private static final int ACTIVITY_NUM = 3;
+    private Double logitude;
+    private Double lat;
+    private String name;
     private ArrayList<Photo> passPhotos;
     private ArrayList<String> mUsers;
     private ArrayList<Photo> mPhotos;
@@ -88,12 +92,21 @@ public class ARActivity extends AppCompatActivity
         mPhotos = new ArrayList<>();
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         arSceneView = findViewById(R.id.arFrameLayout);
-        getUserPhoto();
-        setupBottomNavigationView();
-
-//        arMethod();
+//        getUserPhoto();
+        getSharedData();
+        arMethod();
 
     }
+
+    private void getSharedData()
+    {
+        SharedPreferences sharedPreferences = getSharedPreferences("arID", Context.MODE_PRIVATE);
+        lat = Double.valueOf(sharedPreferences.getString("lat",""));
+        logitude = Double.valueOf(sharedPreferences.getString("long", "" ));
+        name = sharedPreferences.getString("caption","");
+
+    }
+
 
     public void arMethod()
     {
@@ -121,11 +134,11 @@ public class ARActivity extends AppCompatActivity
                             return null;
                         });
 
-
-
         arSceneView
                 .getScene()
-                .setOnUpdateListener(frameTime -> {
+                .addOnUpdateListener
+                //.setOnUpdateListener
+                        (frameTime -> {
 
 
                     Frame frame = arSceneView.getArFrame();
@@ -142,15 +155,9 @@ public class ARActivity extends AppCompatActivity
 
                     if (locationScene == null)
                     {
-                        locationScene = new LocationScene(this, this, arSceneView);
-                        //the current photoes buy the user
+                        locationScene = new LocationScene(mContext, this, arSceneView);
 
-//                        for(Photo p : passPhotos)
-//                        {
-//                            locationScene.mLocationMarkers.add(new LocationMarker(Double.valueOf(p.getLocationlong()),Double.valueOf(p.getLocation()), getAndy(p.getCaption())));
-//                        }
-
-                        locationScene.mLocationMarkers.add(new LocationMarker(-81.3290023803711,28.808021545410156, getAndy("Drop")));
+                        locationScene.mLocationMarkers.add(new LocationMarker(logitude,lat, getAndy(name)));
                     }
 
                     if (locationScene != null)
@@ -396,19 +403,19 @@ public class ARActivity extends AppCompatActivity
         return Radius * c;
     }
 
-    private void setupBottomNavigationView()
-    {
-        BottomNavigationViewEx bottomNavigationViewEx = findViewById(R.id.bottomNavView);
-
-        BottomNavigationViewHelper.setupBottomNavigationView(bottomNavigationViewEx);
-
-        BottomNavigationViewHelper.enableNavigation(mContext,this, bottomNavigationViewEx);
-
-        Menu menu = bottomNavigationViewEx.getMenu();
-
-        MenuItem menuItem = menu.getItem(ACTIVITY_NUM);
-
-        menuItem.setChecked(true);
-    }
+//    private void setupBottomNavigationView()
+//    {
+//        BottomNavigationViewEx bottomNavigationViewEx = findViewById(R.id.bottomNavView);
+//
+//        BottomNavigationViewHelper.setupBottomNavigationView(bottomNavigationViewEx);
+//
+//        BottomNavigationViewHelper.enableNavigation(mContext,this, bottomNavigationViewEx);
+//
+//        Menu menu = bottomNavigationViewEx.getMenu();
+//
+//        MenuItem menuItem = menu.getItem(ACTIVITY_NUM);
+//
+//        menuItem.setChecked(true);
+//    }
 
 }

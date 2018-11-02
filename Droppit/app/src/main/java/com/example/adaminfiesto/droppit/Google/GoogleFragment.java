@@ -1,149 +1,82 @@
-package com.example.adaminfiesto.droppit.Main;
+package com.example.adaminfiesto.droppit.Google;
 
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.location.LocationManager;
-import android.os.Parcelable;
-import android.support.v4.app.ActivityCompat;
-
 import android.location.Location;
 import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import com.example.adaminfiesto.droppit.DataModels.Photo;
 import com.example.adaminfiesto.droppit.Detail.DetailActivity;
 import com.example.adaminfiesto.droppit.R;
-import com.example.adaminfiesto.droppit.Utils.FirebaseMethods;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
 
-import java.io.FileOutputStream;
-import java.io.ObjectOutputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import static android.content.Context.LOCATION_SERVICE;
 import static android.support.constraint.Constraints.TAG;
 
-public class FragmentMap extends Fragment implements
+public class GoogleFragment extends MapFragment implements
         OnMapReadyCallback, GoogleMap.InfoWindowAdapter,
         GoogleMap.OnInfoWindowClickListener,
         LocationListener,
         GoogleMap.OnMapLongClickListener
 {
-    MapView gMapView;
-    private GoogleMap mMap = null;
+    public static final String TAG = "MapFragment.TAG";
+    private GoogleMap mMap;
+    private LocationManager mLC;
+ 
     private static final int REQUEST_LOCATION = 0x0101;
+    boolean mRequestingUpdates = false;
     private double locationlat;
     private double locationlong;
     private ArrayList<String> mUsers;
     private ArrayList<Photo> mPhotos;
     private ArrayList<Photo> passPhotos;
-    private ArrayList<Marker> mMarker;
-    private dataPass datapasser;
-    private LocationManager mLC;
-    private static View view;
     LatLng thePlaceToShow;
     LatLng userloaction;
     FusedLocationProviderClient fusedLocationProviderClient;
 
+    private static final String ARRAY_ARG = "ARRAY_ARG";
+    private final ArrayList<MarkerOptions> markerOptions = new ArrayList<>();
+    public static final String FILE = "FILE";
 
-    public interface dataPass
+    
+    public static GoogleFragment newInstance(ArrayList<Photo> passedEntries)
     {
-        void location(LatLng lat);
-
-    }
-
-    //attach context for the interface
-    @Override
-    public void onAttach(Context context)
-    {
-        super.onAttach(context);
-//        datapasser = (dataPass) context;
-    }
-
-    public static FragmentMap newInstance(ArrayList<Photo> photos)
-    {
+        
         Bundle args = new Bundle();
-        FragmentMap fragment = new FragmentMap();
-        args.putParcelableArrayList("pArray", photos);
+        
+        GoogleFragment fragment = new GoogleFragment();
+        
         fragment.setArguments(args);
+
+        args.putSerializable(ARRAY_ARG, passedEntries);
+
         return fragment;
-    }
-
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState)
-    {
-
-        if (view != null)
-        {
-            ViewGroup parent = (ViewGroup) view.getParent();
-            if (parent != null)
-                parent.removeView(view);
-        }
-
-        try
-        {
-
-            view = inflater.inflate(R.layout.fragment_map, container, false);
-            gMapView = view.findViewById(R.id.mapView);
-            gMapView.getMapAsync(this);
-            mUsers = new ArrayList<>();
-            mPhotos = new ArrayList<>();
-            passPhotos = new ArrayList<>();
-            mMarker = new ArrayList<>();
-
-            //get the data passed from activity to fragment
-            if(getArguments() != null)
-            {
-                mPhotos.clear();
-                mPhotos = getArguments().getParcelableArrayList("pArray");
-            }
-
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-
-        gMapView.onCreate(getArguments());
-
-        return view;
     }
 
     @Override
@@ -151,7 +84,19 @@ public class FragmentMap extends Fragment implements
     {
         super.onCreate(bundle);
 
+        mUsers = new ArrayList<>();
+        mPhotos = new ArrayList<>();
+        passPhotos = new ArrayList<>();
+
+        //get the data passed from activity to fragment
+        if(getArguments() != null)
+        {
+
+            mPhotos = getArguments().getParcelableArrayList(ARRAY_ARG);
+        }
+
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(getActivity());
+
         //request location when activity start
         //get location data from context
         mLC = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
@@ -174,18 +119,20 @@ public class FragmentMap extends Fragment implements
             }
         }
         else
-            {
+        {
             //request permission if we dont have them.
             ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
         }
 
         setHasOptionsMenu(true);
+        getMapAsync(this);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
     {
         Log.d(TAG, "onRequestPermissionsResult: TEST TES TES TES TES TES TES TE ES TES TES TSE");
+
         //request location when activity start
         //get location data from context
         mLC = (LocationManager) getActivity().getSystemService(LOCATION_SERVICE);
@@ -208,12 +155,12 @@ public class FragmentMap extends Fragment implements
 
         }
         else
-            {
+        {
             //request permission if we dont have them.
             ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
         }
 
-        gMapView.getMapAsync(this);
+        getMapAsync(this);
     }
 
     private void zoomInCamara(Location location)
@@ -233,6 +180,7 @@ public class FragmentMap extends Fragment implements
 
         mMap.moveCamera(camMovement);
     }
+
 
     private void getDeviceLocation()
     {
@@ -414,56 +362,6 @@ public class FragmentMap extends Fragment implements
     public void onMapLongClick(LatLng latLng)
     {
 
-    }
-
-    @Override
-    public void onStart()
-    {
-        super.onStart();
-        if (gMapView != null)
-        {
-            gMapView.onStart();
-        }
-    }
-
-    @Override
-    public void onStop()
-    {
-        super.onStop();
-
-        if (gMapView != null)
-        {
-            gMapView.onStop();
-        }
-    }
-
-    @Override
-    public void onPause()
-    {
-        super.onPause();
-    }
-
-    @Override
-    public void onResume()
-    {
-        super.onResume();
-        if (gMapView != null)
-        {
-            gMapView.onResume();
-        }
-
-    }
-
-    @Override
-    public void onDestroy()
-    {
-        super.onDestroy();
-        if (gMapView != null)
-            //clear frag data
-            mPhotos.clear();
-            mUsers.clear();
-            passPhotos.clear();
-            gMapView.onDestroy();
     }
 
 }

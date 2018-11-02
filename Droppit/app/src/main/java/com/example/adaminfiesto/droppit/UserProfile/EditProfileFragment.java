@@ -140,25 +140,6 @@ public class EditProfileFragment extends Fragment
 
             checkIfUsernameExists(username);
         }
-        //TODO:below
-        //this can be will be used to check the actual user passwords and email later
-        //case2: if the user made a change to their email
-//        if(!mUserSettings.getUser().getEmail().equals(email))
-//        {
-//
-//            // step1) Reauthenticate
-//            //          -Confirm the password and email
-//            ConfirmPasswordDialog dialog = new ConfirmPasswordDialog();
-//            dialog.show(getFragmentManager(), getString(R.string.confirm_password_dialog));
-//            dialog.setTargetFragment(EditProfileFragment.this, 1);
-//
-//
-//            // step2) check if the email already is registered
-//            //          -'fetchProvidersForEmail(String email)'
-//            // step3) change the email
-//            //          -submit the new email to the database and authentication
-//        }
-
         //change the remaining items
         if(!mUserSettings.getSettings().getDisplay_name().equals(displayName))
         {
@@ -172,7 +153,7 @@ public class EditProfileFragment extends Fragment
 
         //TODO:Create INTENT BACK
         Intent backProfile = new Intent(getContext(), ProfileActivity.class);
-        //intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        backProfile.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         getActivity().startActivity(backProfile);
 
     }
@@ -278,7 +259,7 @@ public class EditProfileFragment extends Fragment
                     FirebaseMethods firebaseMethods = new FirebaseMethods(getContext());
                     firebaseMethods.uploadNewPhoto(getString(R.string.profile_photo),null, null,
                             0,null, bitmap,
-                            null, null);
+                            null, null, null);
                 }
 
 

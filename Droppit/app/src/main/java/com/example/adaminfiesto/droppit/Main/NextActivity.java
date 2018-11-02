@@ -118,13 +118,13 @@ public class NextActivity extends AppCompatActivity
                         {
                             share.setClickable(false);
                             imgUrl = intent.getStringExtra(getString(R.string.selected_image));
-                            mFirebaseMethods.uploadNewPhoto(getString(R.string.new_photo), caption, isPrivate, imageCount, imgUrl,null, Double.toString(latitude), Double.toString(longitude));
+                            mFirebaseMethods.uploadNewPhoto(getString(R.string.new_photo), caption, isPrivate, imageCount, imgUrl,null, Double.toString(latitude), Double.toString(longitude),null);
                         }
                         else if(intent.hasExtra(getString(R.string.selected_bitmap)))
                         {
                             share.setClickable(false);
                             bitmap = (Bitmap) intent.getParcelableExtra(getString(R.string.selected_bitmap));
-                            mFirebaseMethods.uploadNewPhoto(getString(R.string.new_photo), caption, isPrivate, imageCount,null, bitmap, Double.toString(latitude), Double.toString(longitude));
+                            mFirebaseMethods.uploadNewPhoto(getString(R.string.new_photo), caption, isPrivate, imageCount,null, bitmap, Double.toString(latitude), Double.toString(longitude),null);
                         }
                     }
             }

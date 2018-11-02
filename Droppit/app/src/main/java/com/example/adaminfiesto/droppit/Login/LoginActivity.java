@@ -14,13 +14,16 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.adaminfiesto.droppit.Feed.FeedActivity;
 import com.example.adaminfiesto.droppit.Main.HomeActivity;
 import com.example.adaminfiesto.droppit.R;
+import com.example.adaminfiesto.droppit.Utils.UniversalImageLoader;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.nostra13.universalimageloader.core.ImageLoader;
 
 
 /*
@@ -59,10 +62,18 @@ public class LoginActivity extends AppCompatActivity
         //set the progession base to gone untill tasks are started
         mPleaseWait.setVisibility(View.GONE);
         mProgressBar.setVisibility(View.GONE);
+        initImageLoader();
         //setup
         setupFirebaseAuth();
         init();
 
+    }
+
+    //this is the first screen that will A. Load for the user and B utilize the imageloader for maps
+    private void initImageLoader()
+    {
+        UniversalImageLoader universalImageLoader = new UniversalImageLoader(mContext);
+        ImageLoader.getInstance().init(universalImageLoader.getConfig());
     }
 
     private boolean isStringNull(String string)
@@ -128,7 +139,7 @@ public class LoginActivity extends AppCompatActivity
                                             if(user.isEmailVerified())
                                             {
                                                 Log.d(TAG, "onComplete: success. email is verified.");
-                                                Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+                                                Intent intent = new Intent(LoginActivity.this, FeedActivity.class);
                                                 startActivity(intent);
                                                 finish();
 
@@ -171,7 +182,7 @@ public class LoginActivity extends AppCompatActivity
          If the user is logged in then navigate to HomeActivity and call 'finish()'
           */
         if(mAuth.getCurrentUser() != null){
-            Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+            Intent intent = new Intent(LoginActivity.this, FeedActivity.class);
             startActivity(intent);
             finish();
         }

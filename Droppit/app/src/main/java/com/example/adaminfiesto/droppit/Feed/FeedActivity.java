@@ -1,11 +1,15 @@
 package com.example.adaminfiesto.droppit.Feed;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
@@ -28,6 +32,11 @@ import com.example.adaminfiesto.droppit.R;
 import com.example.adaminfiesto.droppit.Utils.BottomNavigationViewHelper;
 import com.example.adaminfiesto.droppit.Utils.MainfeedListAdapter;
 import com.example.adaminfiesto.droppit.Utils.RecyclerImagerAdapter;
+import com.example.adaminfiesto.droppit.Utils.UniversalImageLoader;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -37,18 +46,20 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
+import com.nostra13.universalimageloader.core.ImageLoader;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
-public class FeedActivity extends AppCompatActivity implements RecyclerImagerAdapter.RecyclerViewClickListener
+public class FeedActivity extends AppCompatActivity implements RecyclerImagerAdapter.RecyclerViewClickListener, MainfeedListAdapter.OnLoadMoreItemsListener
 {
     public Context mContext = FeedActivity.this;
-    private static final int ACTIVITY_NUM = 4;
-    private static final int AR_FRAGMENT = 1;
+    private static final int ACTIVITY_NUM = 1;
+    //private static final int AR_FRAGMENT = 1;
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
     //vars
@@ -67,27 +78,24 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_feed);
-        mListView = (ListView)findViewById(R.id.listView);
+        mListView = (ListView)findViewById(R.id.listViewFeed);
         recyclerView = findViewById(R.id.recyclerview);
         mFollowing = new ArrayList<>();
         mPhotos = new ArrayList<>();
         imgUrls = new ArrayList<>();
         setupFirebaseAuth();
+        //initImageLoader();
         getFollowing();
         setupBottomNavigationView();
 
-
-        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener()
-        {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id)
-            {
-
-            }
-        });
-
     }
 
+    //this is the first screen that will A. Load for the user and B utilize the imageloader for maps
+    private void initImageLoader()
+    {
+        UniversalImageLoader universalImageLoader = new UniversalImageLoader(mContext);
+        ImageLoader.getInstance().init(universalImageLoader.getConfig());
+    }
 
     private void getFollowing()
     {
@@ -137,10 +145,6 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
             final int count = i;
             Query query = reference.child(getString(R.string.dbname_user_photos)).child(mFollowing.get(i)).orderByChild(getString(R.string.field_user_id)).equalTo(mFollowing.get(i));
 
-//        FirebaseDatabase database = FirebaseDatabase.getInstance();
-//        DatabaseReference reference = database.getReference(getString(R.string.dbname_user_photos));
-//        Query query = reference;
-
             query.addListenerForSingleValueEvent(new ValueEventListener()
             {
                 @Override
@@ -156,6 +160,8 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
                         photo.setTags(objectMap.get(getString(R.string.field_tags)).toString());
                         photo.setPhoto_id(objectMap.get(getString(R.string.field_photo_id)).toString());
                         photo.setUser_id(objectMap.get(getString(R.string.field_user_id)).toString());
+                        photo.setLocation(objectMap.get(getString(R.string.field_location)).toString());
+                        photo.setLocationlong(objectMap.get(getString(R.string.field_locationlong)).toString());
                         photo.setDate_created(objectMap.get(getString(R.string.field_date_created)).toString());
                         photo.setImage_path(objectMap.get(getString(R.string.field_image_path)).toString());
 
@@ -233,6 +239,29 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
 
                 mAdapter = new MainfeedListAdapter(this, R.layout.layout_mainfeed_listitem, mPaginatedPhotos);
                 mListView.setAdapter(mAdapter);
+
+                mListView.setOnItemClickListener(new AdapterView.OnItemClickListener()
+                {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id)
+                    {
+                        String photoID = mPhotos.get(position).getPhoto_id();
+                        //send this uuid.
+                        SharedPreferences sharedPreferences = mContext.getSharedPreferences("photoID", Context.MODE_PRIVATE);
+                        SharedPreferences.Editor ed = sharedPreferences.edit();
+                        ed.putInt("checker", 0);
+                        ed.putString("photo", photoID);
+                        ed.apply();
+
+                        Intent detailActivity = new Intent(FeedActivity.this, DetailActivity.class);
+                        FeedActivity.this.overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+                        detailActivity.putExtra(String.valueOf(R.string.to_detail), "detail");
+                        startActivity(detailActivity);
+
+                    }
+                });
+
+
                 setupRView();
 
             }
@@ -280,6 +309,7 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
         }
     }
 
+
     public void displayMorePhotos()
     {
         Log.d(TAG, "displayMorePhotos: displaying more photos");
@@ -320,6 +350,7 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
             Log.e(TAG, "displayPhotos: IndexOutOfBoundsException: " + e.getMessage() );
         }
     }
+
 
     private void setupFirebaseAuth()
     {
@@ -376,5 +407,11 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
         MenuItem menuItem = menu.getItem(ACTIVITY_NUM);
 
         menuItem.setChecked(true);
+    }
+
+    @Override
+    public void onLoadMoreItems()
+    {
+        displayMorePhotos();
     }
 }

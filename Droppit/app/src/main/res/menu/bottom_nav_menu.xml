@@ -9,9 +9,10 @@
     </item>
 
     <item
-        android:id="@+id/ic_search"
-        android:icon="@drawable/ic_search_black_24dp"
-        android:title="">
+        android:id="@+id/ic_feed"
+        android:icon="@drawable/ic_feed"
+        android:title=""
+        >
     </item>
 
     <item
@@ -20,19 +21,7 @@
         android:title="">
     </item>
 
-    <item
-        android:id="@+id/ic_vr"
-        android:icon="@drawable/ic_vr"
-        android:title=""
-        >
-    </item>
 
-    <item
-        android:id="@+id/ic_feed"
-        android:icon="@drawable/ic_feed"
-        android:title=""
-        >
-    </item>
 
 
 

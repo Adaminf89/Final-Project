@@ -237,7 +237,6 @@ public class ProfileFragment extends Fragment implements RecyclerImagerAdapter.R
 
     }
 
-
     public void setupRView()
     {
         if(imgUrls.size() > 0)
@@ -245,8 +244,8 @@ public class ProfileFragment extends Fragment implements RecyclerImagerAdapter.R
             RecyclerImagerAdapter adapter = new RecyclerImagerAdapter(getActivity(), imgUrls,this);
             GridLayoutManager manager = new GridLayoutManager(getActivity(),1);
             manager.setOrientation(LinearLayoutManager.HORIZONTAL);
-            recyclerView.setLayoutManager(manager);
             recyclerView.setHasFixedSize(true);
+            recyclerView.setLayoutManager(manager);
             recyclerView.setAdapter(adapter);
         }
         else
@@ -254,6 +253,7 @@ public class ProfileFragment extends Fragment implements RecyclerImagerAdapter.R
             return;
         }
     }
+
 
     @Override
     public void onAttach(Context context)

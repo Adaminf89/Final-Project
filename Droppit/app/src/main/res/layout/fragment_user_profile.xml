@@ -4,16 +4,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <Button
-        android:id="@+id/unfollowbtn"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="138dp"
-        android:textColor="@color/offWhite"
-        android:background="@drawable/round_button"
-        android:text="UNFOLLOW" />
+    <!--<Button-->
+        <!--android:id="@+id/unfollowbtn"-->
+        <!--android:layout_width="80dp"-->
+        <!--android:layout_height="80dp"-->
+        <!--android:layout_alignParentTop="true"-->
+        <!--android:layout_centerHorizontal="true"-->
+        <!--android:layout_marginTop="138dp"-->
+        <!--android:textColor="@color/offWhite"-->
+        <!--android:background="@drawable/round_button"-->
+        <!--android:text="UNFOLLOW" />-->
 
     <RelativeLayout
         android:layout_width="match_parent"

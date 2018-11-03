@@ -27,7 +27,7 @@ import com.example.adaminfiesto.droppit.DataModels.Photo;
 import com.example.adaminfiesto.droppit.DataModels.UserAccountSettings;
 import com.example.adaminfiesto.droppit.DataModels.UserSettings;
 import com.example.adaminfiesto.droppit.Edit.EditActivity;
-import com.example.adaminfiesto.droppit.Main.HomeActivity;
+import com.example.adaminfiesto.droppit.Google.GoogleActivity;
 import com.example.adaminfiesto.droppit.R;
 import com.example.adaminfiesto.droppit.Search.SearchActivity;
 import com.example.adaminfiesto.droppit.Utils.FirebaseMethods;
@@ -234,7 +234,7 @@ public class DetailFragmentPrivate extends Fragment
                         .child(pData.getPhoto_id())
                         .removeValue();
 
-                        Intent intentHome = new Intent(getContext(), HomeActivity.class);
+                        Intent intentHome = new Intent(getContext(), GoogleActivity.class);
                         intentHome.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                         getContext().startActivity(intentHome);
                         getActivity().overridePendingTransition(R.anim.fade_in, R.anim.fade_out);

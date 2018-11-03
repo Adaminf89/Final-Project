@@ -69,7 +69,7 @@ public class CommentActivity extends AppCompatActivity
 
         FragmentTransaction transaction =  CommentActivity.this.getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.container, fragment);
-        transaction.commitNowAllowingStateLoss();
+        transaction.commitAllowingStateLoss();
     }
 
     private void getUserPhoto()

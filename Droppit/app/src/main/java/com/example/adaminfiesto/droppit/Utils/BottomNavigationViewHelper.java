@@ -10,7 +10,6 @@ import android.view.MenuItem;
 import com.example.adaminfiesto.droppit.AR.ARActivity;
 import com.example.adaminfiesto.droppit.Feed.FeedActivity;
 import com.example.adaminfiesto.droppit.Google.GoogleActivity;
-import com.example.adaminfiesto.droppit.Main.HomeActivity;
 import com.example.adaminfiesto.droppit.R;
 import com.example.adaminfiesto.droppit.Search.SearchActivity;
 import com.example.adaminfiesto.droppit.UserProfile.ProfileActivity;

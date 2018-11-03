@@ -22,8 +22,7 @@ import android.widget.ProgressBar;
 
 import com.example.adaminfiesto.droppit.DataModels.Photo;
 import com.example.adaminfiesto.droppit.Login.LoginActivity;
-import com.example.adaminfiesto.droppit.Main.FragmentMap;
-import com.example.adaminfiesto.droppit.Main.HomeActivity;
+
 import com.example.adaminfiesto.droppit.Main.NextActivity;
 import com.example.adaminfiesto.droppit.R;
 import com.example.adaminfiesto.droppit.Utils.BottomNavigationViewHelper;
@@ -411,7 +410,8 @@ public class GoogleActivity extends AppCompatActivity
     protected void onPause()
     {
         super.onPause();
-        //mPhotos.clear();
+        mPhotos.clear();
+        cPhotos.clear();
     }
 
     @Override
@@ -432,10 +432,11 @@ public class GoogleActivity extends AppCompatActivity
     public void onStop()
     {
         super.onStop();
+        mPhotos.clear();
+        cPhotos.clear();
         if (mAuthListener != null)
         {
             mAuth.removeAuthStateListener(mAuthListener);
-//            progressBar.setVisibility(View.GONE);
         }
     }
 }

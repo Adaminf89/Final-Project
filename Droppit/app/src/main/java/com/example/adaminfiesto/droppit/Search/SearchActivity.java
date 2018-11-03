@@ -16,7 +16,6 @@ import android.widget.EditText;
 import android.widget.ListView;
 
 import com.example.adaminfiesto.droppit.DataModels.User;
-import com.example.adaminfiesto.droppit.Main.HomeActivity;
 import com.example.adaminfiesto.droppit.R;
 import com.example.adaminfiesto.droppit.UserProfile.ProfileActivity;
 import com.example.adaminfiesto.droppit.Utils.BottomNavigationViewHelper;

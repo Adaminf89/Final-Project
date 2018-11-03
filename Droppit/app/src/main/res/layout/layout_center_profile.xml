@@ -46,6 +46,15 @@
                     app:srcCompat="@drawable/common_google_signin_btn_icon_dark"
                     tools:layout_editor_absoluteY="156dp" />
 
+                <Button
+                    android:id="@+id/unfollowbtn"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:background="@drawable/round_button"
+                    android:text="UNFOLLOW"
+                    android:textColor="@color/offWhite"
+                    android:visibility="gone" />
+
                 <!--<include layout="@layout/snippet_top_profile"/>-->
 
                 <TextView

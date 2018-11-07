@@ -270,8 +270,10 @@ public class ViewCommentsFragment extends Fragment
                         query.addListenerForSingleValueEvent(new ValueEventListener()
                         {
                             @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                for ( DataSnapshot singleSnapshot :  dataSnapshot.getChildren()){
+                            public void onDataChange(DataSnapshot dataSnapshot)
+                            {
+                                for ( DataSnapshot singleSnapshot :  dataSnapshot.getChildren())
+                                {
 
                                     Photo photo = new Photo();
                                     Map<String, Object> objectMap = (HashMap<String, Object>) singleSnapshot.getValue();
@@ -292,7 +294,8 @@ public class ViewCommentsFragment extends Fragment
                                     mComments.add(firstComment);
 
                                     for (DataSnapshot dSnapshot : singleSnapshot
-                                            .child(mContext.getString(R.string.field_comments)).getChildren()){
+                                            .child(mContext.getString(R.string.field_comments)).getChildren())
+                                    {
                                         Comment comment = new Comment();
                                         comment.setUser_id(dSnapshot.getValue(Comment.class).getUser_id());
                                         comment.setComment(dSnapshot.getValue(Comment.class).getComment());

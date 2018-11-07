@@ -91,7 +91,6 @@ public class GoogleFragment extends MapFragment implements
         //get the data passed from activity to fragment
         if(getArguments() != null)
         {
-
             mPhotos = getArguments().getParcelableArrayList(ARRAY_ARG);
         }
 

@@ -106,13 +106,14 @@ public class EditActivity extends AppCompatActivity
                     {
 
                     FirebaseMethods firebaseMethods = new FirebaseMethods(mContext);
-                    firebaseMethods.uploadNewPhoto("detail", null, null,
+                    firebaseMethods.uploadNewPhoto("detail", editCaption.getText().toString(), null,
                             0, null, clasBitmap,
                             null, null, picID);
 
-                    Intent backProfile = new Intent(mContext, DetailActivity.class);
-                    backProfile.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    startActivity(backProfile);
+//                    Intent backProfile = new Intent(mContext, DetailActivity.class);
+//                    backProfile.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+//                    startActivity(backProfile);
+                        finish();
                 }
             }
 

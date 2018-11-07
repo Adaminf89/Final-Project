@@ -9,6 +9,7 @@ import android.view.MenuItem;
 
 import com.example.adaminfiesto.droppit.AR.ARActivity;
 import com.example.adaminfiesto.droppit.Feed.FeedActivity;
+import com.example.adaminfiesto.droppit.Google.GeofenceTransitionsIntentService;
 import com.example.adaminfiesto.droppit.Google.GoogleActivity;
 import com.example.adaminfiesto.droppit.R;
 import com.example.adaminfiesto.droppit.Search.SearchActivity;
@@ -59,6 +60,7 @@ public class BottomNavigationViewHelper
                     case R.id.ic_feed:
 
                         Intent intentFeed = new Intent(context, FeedActivity.class);
+                        GeofenceTransitionsIntentService.shouldContinue = false;
                         intentFeed.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                         context.startActivity(intentFeed);
                         callingActivity.overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
@@ -67,6 +69,7 @@ public class BottomNavigationViewHelper
                     case R.id.ic_account:
 
                         Intent intentAcc = new Intent(context, ProfileActivity.class);
+                        GeofenceTransitionsIntentService.shouldContinue = false;
                         //intentAcc.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                         context.startActivity(intentAcc);
                         callingActivity.overridePendingTransition(R.anim.fade_in, R.anim.fade_out);

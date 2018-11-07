@@ -16,11 +16,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.adaminfiesto.droppit.AR.ARActivity;
+import com.example.adaminfiesto.droppit.DataModels.Comment;
 import com.example.adaminfiesto.droppit.DataModels.Like;
 import com.example.adaminfiesto.droppit.DataModels.Photo;
 import com.example.adaminfiesto.droppit.DataModels.UserAccountSettings;
@@ -29,6 +31,7 @@ import com.example.adaminfiesto.droppit.Edit.EditActivity;
 import com.example.adaminfiesto.droppit.Google.GoogleActivity;
 import com.example.adaminfiesto.droppit.Main.NextActivity;
 import com.example.adaminfiesto.droppit.R;
+import com.example.adaminfiesto.droppit.Utils.CommentListAdapter;
 import com.example.adaminfiesto.droppit.Utils.FirebaseMethods;
 import com.example.adaminfiesto.droppit.Utils.UniversalImageLoader;
 import com.google.firebase.auth.FirebaseAuth;
@@ -42,6 +45,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -70,9 +74,12 @@ public class DetailFragmentPublic extends Fragment
     RatingBar rbar;
     Like thisLike;
     Like loadedLike;
+    ListView listView;
     Integer starRating;
     private int checker = 0;
     FirebaseUser currentUser;
+    private ArrayList<Comment> mComments;
+    private Context mContext;
 
     private String Uuid;
     private FirebaseAuth mAuth;
@@ -99,12 +106,14 @@ public class DetailFragmentPublic extends Fragment
         View view = inflater.inflate(R.layout.fragment_drop_public, null);
         tvCaption = view.findViewById(R.id.caption);
         tvDate = view.findViewById(R.id.textDate);
+        mContext = getActivity();
         tvDropTitle = view.findViewById(R.id.dropName);
         tvDistance = view.findViewById(R.id.textDistance);
         ivDropPhoto = (CircleImageView) view.findViewById(R.id.event_image);
         ivProfilePhoto = (CircleImageView) view.findViewById(R.id.images_public);
         ivAR = view.findViewById(R.id.ArImage);
         deleteBtn = view.findViewById(R.id.delete_btn);
+        listView = view.findViewById(R.id.commentLV);
         addBtn = view.findViewById(R.id.add_btn);
         editBtn = view.findViewById(R.id.edit_btn);
         commentBtn = view.findViewById(R.id.comment_btn);
@@ -112,6 +121,7 @@ public class DetailFragmentPublic extends Fragment
         rbar = view.findViewById(R.id.ratingBar);
         mFirebaseMethods = new FirebaseMethods(getActivity());
         currentUser = mAuth.getInstance().getCurrentUser();
+        mComments = new ArrayList<>();
         Uuid = currentUser.getUid().toString();
         loadedLike = new Like();
 
@@ -249,6 +259,7 @@ public class DetailFragmentPublic extends Fragment
             }
         });
 
+        getCom(pData.getPhoto_id());
         getLikes(pData.getPhoto_id());
 
         return view;
@@ -273,7 +284,10 @@ public class DetailFragmentPublic extends Fragment
         {
             timestamp = sdf.parse(photoTimestamp);
             difference = String.valueOf(Math.round(((today.getTime() - timestamp.getTime()) / 1000 / 60 / 60 / 24 )));
-        }catch (ParseException e){
+
+        }
+        catch (ParseException e)
+        {
             Log.e(TAG, "getTimestampDifference: ParseException: " + e.getMessage() );
             difference = "0";
         }
@@ -298,6 +312,44 @@ public class DetailFragmentPublic extends Fragment
         tvDate.setText(getTimestampDifference(pData));
         tvDistance.setVisibility(View.GONE);
 
+    }
+
+    public void getCom(String photoID)
+    {
+        Query q = myRef.child("photos").child(photoID).child("comments");
+
+        q.addListenerForSingleValueEvent(new ValueEventListener()
+        {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot)
+            {
+                if(dataSnapshot.exists())
+                {
+                    for (DataSnapshot dSnapshot : dataSnapshot.getChildren())
+                    {
+                        Comment comment = new Comment();
+                        comment.setUser_id(dSnapshot.getValue(Comment.class).getUser_id());
+                        comment.setComment(dSnapshot.getValue(Comment.class).getComment());
+                        comment.setDate_created(dSnapshot.getValue(Comment.class).getDate_created());
+                        mComments.add(comment);
+                    }
+
+                    if(mComments == null)
+                    {
+                        return;
+                    }
+
+                    CommentListAdapter adapter = new CommentListAdapter(mContext, R.layout.layout_comment, mComments);
+                    listView.setAdapter(adapter);
+                }
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
     }
 
     public void getLikes(String photoID)

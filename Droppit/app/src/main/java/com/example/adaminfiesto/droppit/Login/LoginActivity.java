@@ -15,6 +15,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.adaminfiesto.droppit.Feed.FeedActivity;
+import com.example.adaminfiesto.droppit.Google.GeofenceTransitionsIntentService;
 import com.example.adaminfiesto.droppit.R;
 import com.example.adaminfiesto.droppit.Utils.UniversalImageLoader;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -190,7 +191,8 @@ public class LoginActivity extends AppCompatActivity
     /**
      * Setup the firebase auth object
      */
-    private void setupFirebaseAuth(){
+    private void setupFirebaseAuth()
+    {
         Log.d(TAG, "setupFirebaseAuth: setting up firebase auth.");
 
         mAuth = FirebaseAuth.getInstance();
@@ -213,8 +215,10 @@ public class LoginActivity extends AppCompatActivity
     }
 
     @Override
-    public void onStart() {
+    public void onStart()
+    {
         super.onStart();
+        GeofenceTransitionsIntentService.shouldContinue = false;
         mAuth.addAuthStateListener(mAuthListener);
     }
 

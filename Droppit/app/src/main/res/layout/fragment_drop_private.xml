@@ -5,7 +5,6 @@
     android:background="@color/backgroundBlue"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -14,7 +13,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/relLayout1">
-
             <include layout="@layout/snippit_top_dropbar"/>
 
         </RelativeLayout>
@@ -30,8 +28,9 @@
                 android:id="@+id/textDate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textSize="32sp"
                 android:textColor="@color/offWhite"
-                android:paddingBottom="50dp"
                 android:text="Date" />
 
             <TextView
@@ -56,7 +55,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="10dp"
-                android:layout_marginBottom="10dp"
+                android:layout_marginBottom="0dp"
                 android:numStars="5"/>
 
             <TextView
@@ -64,7 +63,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textColor="@color/offWhite"
-                android:layout_marginTop="50dp"
+                android:textSize="32sp"
+                android:gravity="center"
+                android:layout_marginTop="0dp"
                 android:layout_marginBottom="10dp"
                 android:text="Caption" />
 
@@ -115,23 +116,32 @@
                     android:textColor="@color/offWhite"
                     android:text="Delete"
                     android:visibility="gone" />
+
             </LinearLayout>
+
+            <ListView
+                android:id="@+id/commentLV"
+                android:layout_below="@id/linLayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                />
 
         </LinearLayout>
 
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/linLayout"
-            android:id="@+id/relLayout2">
+        <!--<RelativeLayout-->
+            <!--android:id="@+id/relLayout2"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="match_parent"-->
+            <!--android:layout_below="@id/linLayout">-->
 
-            <ListView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+            <!--<ListView-->
+                <!--android:id="@+id/commentLV"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="match_parent" -->
+                <!--/>-->
 
-                />
-        </RelativeLayout>
+        <!--</RelativeLayout>-->
 
     </RelativeLayout>
 

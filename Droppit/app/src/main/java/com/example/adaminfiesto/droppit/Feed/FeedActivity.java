@@ -6,7 +6,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -21,16 +23,21 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.example.adaminfiesto.droppit.AR.ARActivity;
 import com.example.adaminfiesto.droppit.DataModels.Comment;
+import com.example.adaminfiesto.droppit.DataModels.Like;
 import com.example.adaminfiesto.droppit.DataModels.Photo;
 import com.example.adaminfiesto.droppit.Detail.DetailActivity;
 import com.example.adaminfiesto.droppit.Detail.DetailFragmentPrivate;
 import com.example.adaminfiesto.droppit.Detail.DetailFragmentPublic;
+import com.example.adaminfiesto.droppit.Google.GeofenceTransitionsIntentService;
 import com.example.adaminfiesto.droppit.R;
+import com.example.adaminfiesto.droppit.UserProfile.ProfileActivity;
 import com.example.adaminfiesto.droppit.Utils.BottomNavigationViewHelper;
 import com.example.adaminfiesto.droppit.Utils.MainfeedListAdapter;
+import com.example.adaminfiesto.droppit.Utils.Permissions;
 import com.example.adaminfiesto.droppit.Utils.RecyclerImagerAdapter;
 import com.example.adaminfiesto.droppit.Utils.UniversalImageLoader;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -45,6 +52,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
 import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
@@ -62,6 +70,10 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
     //private static final int AR_FRAGMENT = 1;
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
+    private FirebaseDatabase mFirebaseDatabase;
+    private static final int MY_PERMISSION_REQUEST_FINE_LOCATION = 101;
+    private static final int MY_PERMISSION_REQUEST_COARSE_LOCATION = 102;
+    private DatabaseReference myRef;
     //vars
     private ArrayList<Photo> mPhotos;
     private ArrayList<Photo> mPaginatedPhotos;
@@ -72,6 +84,12 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
     private MainfeedListAdapter mAdapter;
     private int mResults;
     private String TAG;
+    private boolean permissionIsGranted = false;
+
+    private ArrayList<String> mtrending;
+    private ArrayList<Photo> tPhotos;
+    private Integer count;
+    private static final int VERIFY_PERMISSIONS_REQUEST = 3;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState)
@@ -80,12 +98,32 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
         setContentView(R.layout.activity_feed);
         mListView = (ListView)findViewById(R.id.listViewFeed);
         recyclerView = findViewById(R.id.recyclerview);
+        mtrending = new ArrayList<>();
+        tPhotos = new ArrayList<>();
         mFollowing = new ArrayList<>();
         mPhotos = new ArrayList<>();
         imgUrls = new ArrayList<>();
         setupFirebaseAuth();
-        //initImageLoader();
-        getFollowing();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+        {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSION_REQUEST_FINE_LOCATION);
+        }
+        else
+            {
+            permissionIsGranted = true;
+        }
+
+        if(checkPermissionsArray(Permissions.PERMISSIONS))
+        {
+
+            getrending();
+        }
+        else
+        {
+            verifyPermissions(Permissions.PERMISSIONS);
+        }
+
         setupBottomNavigationView();
 
     }
@@ -96,6 +134,7 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
         UniversalImageLoader universalImageLoader = new UniversalImageLoader(mContext);
         ImageLoader.getInstance().init(universalImageLoader.getConfig());
     }
+
 
     private void getFollowing()
     {
@@ -120,9 +159,10 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
                     mFollowing.add(singleSnapshot.getKey().toString());
                 }
 
-                Log.d(TAG, "onDataChange: found user: " + mFollowing.get(0).toString() +" / "+ mFollowing.get(1).toString());
+//                Log.d(TAG, "onDataChange: found user: " + mFollowing.get(0).toString() +" / "+ mFollowing.get(1).toString());
 
                 getPhotos();
+
             }
 
             public void onCancelled(DatabaseError databaseError)
@@ -133,18 +173,99 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
 
     }
 
+    public void getrending()
+    {
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference reference = database.getReference("trending");
+        Query query = reference;
+
+        query.addValueEventListener(new ValueEventListener()
+        {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot)
+            {
+                Log.d(TAG,"database of userphotos" +dataSnapshot.toString());
+
+                for(DataSnapshot singleSnapshot : dataSnapshot.getChildren())
+                {
+                    Log.d(TAG, "onDataChange: found user: " + singleSnapshot.child(getString(R.string.field_user_id)).getValue());
+
+                    //mFollowing.add(singleSnapshot.child(getString(R.string.field_user_id)).getValue().toString());
+                    mtrending.add(singleSnapshot.getKey().toString());
+                }
+
+//                Log.d(TAG, "onDataChange: found user: " + mtrending.get(0).toString() +" / "+ mtrending.get(1).toString());
+
+               getTrending();
+
+            }
+
+            public void onCancelled(DatabaseError databaseError)
+            {
+
+            }
+        });
+    }
+
+    private void getTrending()
+    {
+//        Log.d(TAG, "getPhotos: getting photos "+ mtrending.get(0).toString()+ " index 2 " + mtrending.get(1).toString());
+
+        DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
+
+        for(int i = 0; i < mtrending.size(); i++)
+        {
+            final int count = i;
+
+            Query query = reference.child(getString(R.string.dbname_photos)).child(mtrending.get(i));
+            query.addListenerForSingleValueEvent(new ValueEventListener()
+            {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot)
+                {
+
+                    if(dataSnapshot.exists())
+                    {
+                        Photo photo = new Photo();
+                        Map<String, Object> objectMap = (HashMap<String, Object>) dataSnapshot.getValue();
+
+                        photo.setCaption(objectMap.get(getString(R.string.field_caption)).toString());
+                        photo.setTags(objectMap.get(getString(R.string.field_tags)).toString());
+                        photo.setPhoto_id(objectMap.get(getString(R.string.field_photo_id)).toString());
+                        photo.setUser_id(objectMap.get(getString(R.string.field_user_id)).toString());
+                        photo.setLocation(objectMap.get(getString(R.string.field_location)).toString());
+                        photo.setLocationlong(objectMap.get(getString(R.string.field_locationlong)).toString());
+                        photo.setDate_created(objectMap.get(getString(R.string.field_date_created)).toString());
+                        photo.setImage_path(objectMap.get(getString(R.string.field_image_path)).toString());
+
+                        tPhotos.add(photo);
+
+                    }
+
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError)
+                {
+
+                }
+            });
+        }
+
+        getFollowing();
+    }
+
     private void getPhotos()
     {
         Log.d(TAG, "getPhotos: getting photos");
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
 
-        Log.d(TAG, "getPhotos: getting photos "+ mFollowing.get(0).toString()+ " index 2 " + mFollowing.get(1).toString());
+//        Log.d(TAG, "getPhotos: getting photos "+ mFollowing.get(0).toString()+ " index 2 " + mFollowing.get(1).toString());
 
         for(int i = 0; i < mFollowing.size(); i++)
         {
             final int count = i;
             Query query = reference.child(getString(R.string.dbname_user_photos)).child(mFollowing.get(i)).orderByChild(getString(R.string.field_user_id)).equalTo(mFollowing.get(i));
-
             query.addListenerForSingleValueEvent(new ValueEventListener()
             {
                 @Override
@@ -176,25 +297,47 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
                             comments.add(comment);
                         }
 
+                        ArrayList<Like> likes = new ArrayList<Like>();
+
+                        for (DataSnapshot lSnapshot : singleSnapshot.child("like").getChildren())
+                        {
+
+                            Like like = new Like();
+                            like.setRating(lSnapshot.getValue(Like.class).getRating());
+                            like.setUser_id(lSnapshot.getValue(Like.class).getUser_id());
+                            likes.add(like);
+
+
+                        }
+
+                        photo.setLikes(likes);
                         photo.setComments(comments);
                         mPhotos.add(photo);
 
-
                     }
 
-                    imgUrls = new ArrayList<String>();
-
-                    for(int i = 0; i < mPhotos.size(); i++)
+                    Handler h = new Handler();
+                    h.post(new Runnable()
                     {
-                        imgUrls.add(mPhotos.get(i).getImage_path());
-                        // mPhoto = mPhoto.g
-                    }
+                        @Override
+                        public void run()
+                        {
+                            imgUrls = new ArrayList<String>();
 
-                    if(count >= mFollowing.size() -1)
-                    {
-                        //display our photos
-                        displayPhotos();
-                    }
+                            for(int i = 0; i < tPhotos.size(); i++)
+                            {
+                                imgUrls.add(tPhotos.get(i).getImage_path());
+                                // mPhoto = mPhoto.g
+                            }
+
+                            if(count >= mFollowing.size() -1)
+                            {
+                                //display our photos
+                                displayPhotos();
+                            }
+                        }
+                    });
+
                 }
 
                 @Override
@@ -204,6 +347,36 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
                 }
             });
         }
+    }
+
+    public void likeChecker(String photoID)
+    {
+        int num = Integer.valueOf(photoID);
+
+        if(num > 0 && num < 1.5)
+        {
+
+        }
+
+        Query query = myRef.child("Rating").child(photoID);
+        query.addListenerForSingleValueEvent(new ValueEventListener()
+        {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot)
+            {
+                for(DataSnapshot singleSnapshot : dataSnapshot.getChildren())
+                {
+                    count = singleSnapshot.getValue(Integer.class);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError)
+            {
+
+            }
+        });
+
     }
 
     private void displayPhotos()
@@ -261,7 +434,6 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
                     }
                 });
 
-
                 setupRView();
 
             }
@@ -280,11 +452,11 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
     public void recyclerViewListClicked(View v, int position)
     {
         //send this uuid.
-        String photoID = mPhotos.get(position).getPhoto_id();
+        String photoID = tPhotos.get(position).getPhoto_id();
         SharedPreferences sharedPreferences = this.getSharedPreferences("photoID", Context.MODE_PRIVATE);
         SharedPreferences.Editor ed = sharedPreferences.edit();
         ed.putString("photo", photoID);
-        ed.putInt("checker",1);
+        ed.putInt("checker", 1);
         ed.apply();
 
         Intent detailActivity = new Intent(this, DetailActivity.class);
@@ -308,7 +480,6 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
             return;
         }
     }
-
 
     public void displayMorePhotos()
     {
@@ -351,12 +522,13 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
         }
     }
 
-
     private void setupFirebaseAuth()
     {
         Log.d(TAG, "setupFirebaseAuth: setting up firebase auth.");
 
         mAuth = FirebaseAuth.getInstance();
+        mFirebaseDatabase = FirebaseDatabase.getInstance();
+        myRef = mFirebaseDatabase.getReference();
 
         mAuthListener = new FirebaseAuth.AuthStateListener()
         {
@@ -381,6 +553,8 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
     public void onStart()
     {
         super.onStart();
+
+        GeofenceTransitionsIntentService.shouldContinue = false;
         mAuth.addAuthStateListener(mAuthListener);
     }
 
@@ -413,5 +587,91 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
     public void onLoadMoreItems()
     {
         displayMorePhotos();
+    }
+
+    private void requestLocationUpdates()
+    {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSION_REQUEST_FINE_LOCATION);
+            } else {
+                permissionIsGranted = true;
+            }
+            return;
+        }
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
+    {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode)
+        {
+            case MY_PERMISSION_REQUEST_FINE_LOCATION:
+
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                {
+                    // permission granted
+                    permissionIsGranted = true;
+                }
+                else
+                {
+                    //permission denied
+                    permissionIsGranted = false;
+                    Toast.makeText(getApplicationContext(), "This app requires location permission to be granted", Toast.LENGTH_SHORT).show();
+
+                }
+                break;
+            case MY_PERMISSION_REQUEST_COARSE_LOCATION:
+                // do something for coarse location
+                break;
+        }
+    }
+
+    public boolean checkPermissionsArray(String[] permissions)
+    {
+
+        for(int i = 0; i< permissions.length; i++)
+        {
+            String check = permissions[i];
+            if(!checkPermissions(check))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean checkPermissions(String permission)
+    {
+        Log.d(TAG, "checkPermissions: checking permission: " + permission);
+
+        int permissionRequest = ActivityCompat.checkSelfPermission(FeedActivity.this, permission);
+        //check go or no
+        if(permissionRequest != PackageManager.PERMISSION_GRANTED)
+        {
+            Log.d(TAG, "checkPermissions: \n Permission was not granted for: " + permission);
+            return false;
+        }
+        else
+        {
+            Log.d(TAG, "checkPermissions: \n Permission was granted for: " + permission);
+            return true;
+        }
+    }
+
+    public void verifyPermissions(String[] permissions)
+    {
+        Log.d(TAG, "verifyPermissions: verifying permissions.");
+
+        ActivityCompat.requestPermissions(FeedActivity.this, permissions, VERIFY_PERMISSIONS_REQUEST);
     }
 }

@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.Handler;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -16,10 +17,9 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.example.adaminfiesto.droppit.DataModels.Comment;
@@ -29,7 +29,6 @@ import com.example.adaminfiesto.droppit.DataModels.User;
 import com.example.adaminfiesto.droppit.DataModels.UserAccountSettings;
 import com.example.adaminfiesto.droppit.Detail.CommentActivity;
 import com.example.adaminfiesto.droppit.Detail.DetailActivity;
-import com.example.adaminfiesto.droppit.Feed.FeedActivity;
 import com.example.adaminfiesto.droppit.R;
 import com.example.adaminfiesto.droppit.UserProfile.ProfileActivity;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -48,23 +47,24 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 import java.util.TimeZone;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-import static android.support.constraint.Constraints.TAG;
-
 public class MainfeedListAdapter extends ArrayAdapter<Photo> {
 
-    public interface OnLoadMoreItemsListener {
+    public interface OnLoadMoreItemsListener
+    {
         void onLoadMoreItems();
     }
-
-    OnLoadMoreItemsListener mOnLoadMoreItemsListener;
 
     private static final String TAG = "MainfeedListAdapter";
     private LayoutInflater mInflater;
@@ -73,9 +73,12 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo> {
     private DatabaseReference mReference;
     private String currentUsername = "";
     private LatLng thePlaceToShow;
+    OnLoadMoreItemsListener mOnLoadMoreItemsListener;
     FusedLocationProviderClient fusedLocationProviderClient;
+    Integer count = 0;
 
-    public MainfeedListAdapter(@NonNull Context context, @LayoutRes int resource, @NonNull List<Photo> objects) {
+    public MainfeedListAdapter(@NonNull Context context, @LayoutRes int resource, @NonNull List<Photo> objects)
+    {
         super(context, resource, objects);
         mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         mLayoutResource = resource;
@@ -85,11 +88,13 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo> {
 
     static class ViewHolder
     {
-        ListView mListView;
+        TextView username, distance, timeDetla, caption, comments;
         CircleImageView mprofileImage;
         CircleImageView image;
-        String likesString;
-        TextView username, distance, timeDetla, caption, comments;
+        ListView mListView;
+        String likes;
+        RatingBar rbar;
+
 
         //var for each post user
         UserAccountSettings settings = new UserAccountSettings();
@@ -112,6 +117,7 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo> {
             holder = new ViewHolder();
 
             holder.mprofileImage = convertView.findViewById(R.id.profile_photo);
+            holder.rbar = convertView.findViewById(R.id.feed_rbar);
             holder.username = convertView.findViewById(R.id.username);
             holder.caption = convertView.findViewById(R.id.image_caption);
             holder.comments = convertView.findViewById(R.id.image_comments_link);
@@ -126,7 +132,9 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo> {
 
             convertView.setTag(holder);
 
-        } else {
+        }
+        else
+            {
             holder = (ViewHolder) convertView.getTag();
         }
 
@@ -167,6 +175,22 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo> {
 
             }
         });
+
+
+
+        Handler h = new Handler();
+        h.post(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                String picid = getItem(position).getPhoto_id();
+                rateing(picid);
+                holder.rbar.setRating(count);
+            }
+        });
+
+
 
         //set the comment
         List<Comment> comments = getItem(position).getComments();
@@ -214,9 +238,12 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo> {
         {
             holder.timeDetla.setText(timestampDifference + " DAYS AGO");
         }
-        else{
+        else
+            {
             holder.timeDetla.setText("TODAY");
         }
+
+
 
         //set the profile image
         final ImageLoader imageLoader = ImageLoader.getInstance();
@@ -284,6 +311,8 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo> {
             }
         });
 
+
+
         //get the user object
         Query userQuery = mReference
                 .child(mContext.getString(R.string.dbname_users))
@@ -316,6 +345,7 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo> {
         {
             loadMoreData();
         }
+
 
         return convertView;
     }
@@ -377,7 +407,6 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo> {
 
                         String keyID = singleSnapshot.getKey();
 
-                        //case1: Then user already liked the photo
                         if(mHolder.likeByCurrentUser && singleSnapshot.getValue(Like.class).getUser_id()
                                 .equals(FirebaseAuth.getInstance().getCurrentUser().getUid()))
                         {
@@ -387,7 +416,7 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo> {
                                     .child(mContext.getString(R.string.field_likes))
                                     .child(keyID)
                                     .removeValue();
-///
+
                             mReference.child(mContext.getString(R.string.dbname_user_photos))
                                     .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
                                     .child(mHolder.photo.getPhoto_id())
@@ -395,10 +424,9 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo> {
                                     .child(keyID)
                                     .removeValue();
 
-//                            mHolder.heart.toggleLike();
+
                             getLikesString(mHolder);
                         }
-                        //case2: The user has not liked the photo
                         else if(!mHolder.likeByCurrentUser)
                         {
                             //add new like
@@ -473,6 +501,36 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo> {
         });
     }
 
+    private void rateing(String id)
+    {
+
+        Query query = mReference.child("Rating").child(id);
+        query.addListenerForSingleValueEvent(new ValueEventListener()
+        {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot)
+            {
+                for(DataSnapshot singleSnapshot : dataSnapshot.getChildren())
+                {
+                    count = singleSnapshot.getValue(Integer.class);
+                }
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError)
+            {
+
+            }
+        });
+
+        if(count == 0)
+        {
+            count = 2;
+        }
+
+    }
+
     private void getDeviceLocation()
     {
         if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -492,7 +550,6 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo> {
             {
 
 //                thePlaceToShow = new LatLng(location.getLatitude(), location.getLongitude());
-//
 //
 //                LatLng latM = new LatLng(Double.valueOf(getItem(position).getLocation()), Double.valueOf(getItem(position).getLocationlong()));
 //                double dis = CalculationByDistance(latM, thePlaceToShow);
@@ -583,34 +640,34 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo> {
 
                             if(length == 1)
                             {
-                                holder.likesString = "Liked by " + splitUsers[0];
+                                holder.likes = "Liked by " + splitUsers[0];
                             }
                             else if(length == 2)
                             {
-                                holder.likesString = "Liked by " + splitUsers[0]
+                                holder.likes = "Liked by " + splitUsers[0]
                                         + " and " + splitUsers[1];
                             }
                             else if(length == 3)
                             {
-                                holder.likesString = "Liked by " + splitUsers[0]
+                                holder.likes = "Liked by " + splitUsers[0]
                                         + ", " + splitUsers[1]
                                         + " and " + splitUsers[2];
 
                             }
                             else if(length == 4){
-                                holder.likesString = "Liked by " + splitUsers[0]
+                                holder.likes = "Liked by " + splitUsers[0]
                                         + ", " + splitUsers[1]
                                         + ", " + splitUsers[2]
                                         + " and " + splitUsers[3];
                             }
                             else if(length > 4)
                             {
-                                holder.likesString = "Liked by " + splitUsers[0]
+                                holder.likes = "Liked by " + splitUsers[0]
                                         + ", " + splitUsers[1]
                                         + ", " + splitUsers[2]
                                         + " and " + (splitUsers.length - 3) + " others";
                             }
-                            Log.d(TAG, "onDataChange: likes string: " + holder.likesString);
+                            Log.d(TAG, "onDataChange: likes string: " + holder.likes);
                             //setup likes string
                         }
 
@@ -622,7 +679,7 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo> {
                 }
                 if(!dataSnapshot.exists())
                 {
-                    holder.likesString = "";
+                    holder.likes = "";
                     holder.likeByCurrentUser = false;
                     //setup likes string
                 }
@@ -637,7 +694,7 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo> {
         catch (NullPointerException e)
         {
             Log.e(TAG, "getLikesString: NullPointerException: " + e.getMessage() );
-            holder.likesString = "";
+            holder.likes = "";
             holder.likeByCurrentUser = false;
             //setup likes string
         }

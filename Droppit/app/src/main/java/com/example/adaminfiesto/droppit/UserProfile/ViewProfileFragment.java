@@ -152,6 +152,7 @@ public class ViewProfileFragment extends Fragment implements RecyclerImagerAdapt
                         .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
                         .child(getString(R.string.field_user_id))
                         .setValue(FirebaseAuth.getInstance().getCurrentUser().getUid());
+
                 setFollowing();
 
             }
@@ -160,7 +161,8 @@ public class ViewProfileFragment extends Fragment implements RecyclerImagerAdapt
         mUnfollow.setOnClickListener(new View.OnClickListener()
         {
             @Override
-            public void onClick(View v) {
+            public void onClick(View v)
+            {
                 Log.d(TAG, "onClick: now unfollowing: " + mUser.getUsername());
 
                 FirebaseDatabase.getInstance().getReference()
@@ -189,7 +191,7 @@ public class ViewProfileFragment extends Fragment implements RecyclerImagerAdapt
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("photoID", Context.MODE_PRIVATE);
         SharedPreferences.Editor ed = sharedPreferences.edit();
         ed.putString("photo", photoID);
-        ed.putInt("checker",1);
+        ed.putInt("checker", 1);
         ed.apply();
 
         Intent detailActivity = new Intent(getActivity(), DetailActivity.class);
@@ -319,13 +321,18 @@ public class ViewProfileFragment extends Fragment implements RecyclerImagerAdapt
         setUnfollowing();
 
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
+
         Query query = reference.child(getString(R.string.dbname_following))
                 .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
                 .orderByChild(getString(R.string.field_user_id)).equalTo(mUser.getUser_id());
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
+
+        query.addListenerForSingleValueEvent(new ValueEventListener()
+        {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for(DataSnapshot singleSnapshot :  dataSnapshot.getChildren()){
+            public void onDataChange(DataSnapshot dataSnapshot)
+            {
+                for(DataSnapshot singleSnapshot :  dataSnapshot.getChildren())
+                {
                     Log.d(TAG, "onDataChange: found user:" + singleSnapshot.getValue());
 
                     setFollowing();
@@ -333,7 +340,8 @@ public class ViewProfileFragment extends Fragment implements RecyclerImagerAdapt
             }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) {
+            public void onCancelled(DatabaseError databaseError)
+            {
 
             }
         });

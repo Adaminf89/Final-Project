@@ -78,7 +78,6 @@ public class DetailActivity extends AppCompatActivity
 
         if(checker.equals("detail"))
         {
-
             System.out.print(pdata.describeContents());
 
             if(pdata.getmPrivate().toString().equals("false"))
@@ -151,8 +150,8 @@ public class DetailActivity extends AppCompatActivity
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
+            public void onCancelled(@NonNull DatabaseError databaseError)
+            {
             }
         });
 
@@ -204,7 +203,8 @@ public class DetailActivity extends AppCompatActivity
     }
 
     @Override
-    public void onStart() {
+    public void onStart()
+    {
         super.onStart();
         mAuth.addAuthStateListener(mAuthListener);
     }

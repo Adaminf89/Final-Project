@@ -17,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
@@ -30,6 +31,7 @@ import com.example.adaminfiesto.droppit.Edit.EditActivity;
 import com.example.adaminfiesto.droppit.Google.GoogleActivity;
 import com.example.adaminfiesto.droppit.R;
 import com.example.adaminfiesto.droppit.Search.SearchActivity;
+import com.example.adaminfiesto.droppit.Utils.CommentListAdapter;
 import com.example.adaminfiesto.droppit.Utils.FirebaseMethods;
 import com.example.adaminfiesto.droppit.Utils.UniversalImageLoader;
 import com.google.android.gms.maps.model.LatLng;
@@ -48,6 +50,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
@@ -70,10 +73,13 @@ public class DetailFragmentPrivate extends Fragment
     Button commentBtn;
     Like thisLike;
     Like loadedLike;
+    ListView listView;
     Integer starRating;
+    private ArrayList<Comment> mComments;
     private int checker = 0;
     RatingBar rbar;
     private int imageCount = 0;
+    private Context mContext;
 
     //since were doing this page a bit differencly were bandaiding some already created fb methods
     private FirebaseAuth mAuth;
@@ -102,21 +108,24 @@ public class DetailFragmentPrivate extends Fragment
 
         View view = inflater.inflate(R.layout.fragment_drop_private, null);
         tvCaption = view.findViewById(R.id.caption);
+        mContext = getActivity();
         tvDate = view.findViewById(R.id.textDate);
         tvDropTitle = view.findViewById(R.id.dropName);
         tvDistance = view.findViewById(R.id.textDistance);
         ivDropPhoto = view.findViewById(R.id.event_image);
         ivAR = view.findViewById(R.id.ArImage);
         deleteBtn = view.findViewById(R.id.delete_btn);
+        listView = view.findViewById(R.id.commentLV);
         addBtn = view.findViewById(R.id.add_btn);
         editBtn = view.findViewById(R.id.edit_btn);
         commentBtn = view.findViewById(R.id.comment_btn);
         ivNavBtn = view.findViewById(R.id.navigationBtn);
         rbar = view.findViewById(R.id.ratingBar);
 
-
+        //
         mFirebaseMethods = new FirebaseMethods(getActivity());
         currentUser = mAuth.getInstance().getCurrentUser();
+        mComments = new ArrayList<>();
         Uuid = currentUser.getUid().toString();
         loadedLike = new Like();
 
@@ -135,7 +144,6 @@ public class DetailFragmentPrivate extends Fragment
             deleteBtn.setVisibility(View.VISIBLE);
             editBtn.setVisibility(View.VISIBLE);
             commentBtn.setVisibility(View.VISIBLE);
-
         }
         else
         {
@@ -257,7 +265,10 @@ public class DetailFragmentPrivate extends Fragment
             }
         });
 
+        getCom(pData.getPhoto_id());
         getLikes(pData.getPhoto_id());
+
+
 
         return view;
     }
@@ -288,14 +299,55 @@ public class DetailFragmentPrivate extends Fragment
         return difference +" days ago";
     }
 
+
+    public void getCom(String photoID)
+    {
+        Query q = myRef.child("photos").child(photoID).child("comments");
+
+        q.addListenerForSingleValueEvent(new ValueEventListener()
+        {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot)
+            {
+                if(dataSnapshot.exists())
+                {
+                    for (DataSnapshot dSnapshot : dataSnapshot.getChildren())
+                    {
+                        Comment comment = new Comment();
+                        comment.setUser_id(dSnapshot.getValue(Comment.class).getUser_id());
+                        comment.setComment(dSnapshot.getValue(Comment.class).getComment());
+                        comment.setDate_created(dSnapshot.getValue(Comment.class).getDate_created());
+                        mComments.add(comment);
+                    }
+
+                    if(mComments == null)
+                    {
+                        return;
+                    }
+
+                    CommentListAdapter adapter = new CommentListAdapter(mContext, R.layout.layout_comment, mComments);
+                    listView.setAdapter(adapter);
+                }
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
     public void getLikes(String photoID)
     {
 
         Query q = myRef.child("Likes").child(currentUser.getUid()).child(photoID);
 
-        q.addListenerForSingleValueEvent(new ValueEventListener() {
+        q.addListenerForSingleValueEvent(new ValueEventListener()
+        {
             @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot)
+            {
                 if(dataSnapshot.exists())
                 {
                     loadedLike = dataSnapshot.getValue(Like.class);
@@ -336,6 +388,7 @@ public class DetailFragmentPrivate extends Fragment
         tvDate.setText(getTimestampDifference(pData));
         //tvDistance.setText("loading...");
         tvDistance.setVisibility(View.GONE);
+
     }
 
     //since we need a specific user data rather than pushing it throughout the app we will just make a call to firebase to get that data

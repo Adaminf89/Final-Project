@@ -8,6 +8,7 @@ import android.util.Log;
 import android.widget.Toast;
 import com.example.adaminfiesto.droppit.DataModels.Like;
 import com.example.adaminfiesto.droppit.DataModels.Photo;
+import com.example.adaminfiesto.droppit.DataModels.Trending;
 import com.example.adaminfiesto.droppit.DataModels.UserSettings;
 import com.example.adaminfiesto.droppit.Google.GoogleActivity;
 import com.example.adaminfiesto.droppit.R;
@@ -49,6 +50,7 @@ public class FirebaseMethods
     private DatabaseReference myRef;
     private String userID;
     private Context mContext;
+    Integer count = 0;
 
     public FirebaseMethods(Context context)
     {
@@ -103,43 +105,6 @@ public class FirebaseMethods
         }
     }
 
-    public void updateEvent(String photoID, String imgUrl)
-    {
-
-        //todo tweak the back feat for when edit is done
-        myRef.child("photos")
-                .child(photoID)
-                .child("image_path")
-                .setValue(imgUrl);
-
-
-        Query q = myRef.child("user_photos");
-
-        q.addValueEventListener(new ValueEventListener()
-        {
-
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot)
-            {
-                //users in node
-                for(DataSnapshot singleSnapshot : dataSnapshot.getChildren())
-                {
-                    //photos
-                    for(DataSnapshot photo : singleSnapshot.getChildren())
-                    {
-                        photo.getRef().child(photoID).child("image_path").setValue(imgUrl);
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError)
-            {
-
-            }
-        });
-
-    }
 
     //update username in the 'users' node and 'user_account_settings' node @param username
     public void updateUsername(String username)
@@ -359,7 +324,6 @@ public class FirebaseMethods
         String newPhotoKey = myRef.child(mContext.getString(R.string.dbname_photos)).push().getKey();
 
         Photo photo = new Photo();
-
         photo.setCaption(caption);
         photo.setDate_created(getTimestamp());
         photo.setImage_path(url);
@@ -374,6 +338,65 @@ public class FirebaseMethods
         myRef.child(mContext.getString(R.string.dbname_user_photos)).child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child(newPhotoKey).setValue(photo);
         myRef.child(mContext.getString(R.string.dbname_photos)).child(newPhotoKey).setValue(photo);
 
+
+    }
+
+    public void likeChecker(String photoID)
+    {
+        int num = Integer.valueOf(photoID);
+
+        if(num > 0 && num < 1.5)
+        {
+
+        }
+
+        Query query = myRef.child("Rating").child(photoID);
+        query.addListenerForSingleValueEvent(new ValueEventListener()
+        {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot)
+            {
+                for(DataSnapshot singleSnapshot : dataSnapshot.getChildren())
+                {
+                    count = singleSnapshot.getValue(Integer.class);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError)
+            {
+
+            }
+        });
+
+    }
+
+    public void updateTrending(String photoID)
+    {
+        String newPhotoKey = myRef.child("trending").push().child(photoID).getKey();
+
+        count += 1;
+        myRef.child("trending").child(photoID).setValue(count);
+
+//        Query q = myRef.child("trending").child(photoID);
+
+//        q.addListenerForSingleValueEvent(new ValueEventListener()
+//        {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot dataSnapshot)
+//            {
+//
+//                count = dataSnapshot.getValue(Integer.class);
+//
+//
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError databaseError) {
+//
+//            }
+//
+//        });
 
     }
 
@@ -393,6 +416,8 @@ public class FirebaseMethods
 
         return settings;
     }
+
+
 
     private void setProfilePhoto(String url)
     {
@@ -424,16 +449,70 @@ public class FirebaseMethods
                 child(cphoto.getPhoto_id()).setValue(photo);
     }
 
-    public void setLikesPhoto(Like Like, String photokey)
+
+    public void updateEvent(String photoID, String imgUrl, String cap)
+    {
+        //todo tweak the back feat for when edit is done
+        myRef.child("photos")
+                .child(photoID)
+                .child("image_path")
+                .setValue(imgUrl);
+
+        myRef.child("photos")
+                .child(photoID)
+                .child("caption")
+                .setValue(cap);
+
+        Query q = myRef.child("user_photos");
+
+        //query user photo node 1st node
+        q.addValueEventListener(new ValueEventListener()
+        {
+
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot)
+            {
+                //users in node 2nd node
+                for(DataSnapshot singleSnapshot : dataSnapshot.getChildren())
+                {
+                    singleSnapshot.getRef().child(photoID).child("image_path").setValue(imgUrl);
+                    singleSnapshot.getRef().child(photoID).child("caption").setValue(cap);
+                    //photos in user  3rd node
+//                    for(DataSnapshot photo : singleSnapshot.getChildren())
+//                    {
+//                        //inside the matching node
+//                        photo.getRef().child(photoID).child("image_path").setValue(imgUrl);
+//                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError)
+            {
+
+            }
+        });
+    }
+
+
+    public void setLikesPhoto(Like like, String photokey)
     {
 
         myRef.child("Likes")
                 .child(userID)
                 .child(photokey)
-                .setValue(Like);
+                .setValue(like);
 
         //todo create another node for pure ratings that just has the Like number under the photo id's
         //todo that way we can just pull it and adverage the numbers
+        FirebaseDatabase.getInstance().getReference()
+                .child("Rating")
+                .child(photokey)
+                .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+//                .child(getString(R.string.field_user_id))
+                .setValue(like.getRating());
+
+
     }
 
     public void setGeoTrending()
@@ -611,7 +690,7 @@ public class FirebaseMethods
                             public void onSuccess(Uri uri)
                             {
                                 Uri firebaseUrl = uri;
-                                updateEvent(photoId, firebaseUrl.toString());
+                                updateEvent(photoId, firebaseUrl.toString(), caption);
 
 //                        Toast.makeText(mContext, "photo upload success", Toast.LENGTH_SHORT).show();
 //                        //add the new photo to 'photos' node and 'user_photos' node

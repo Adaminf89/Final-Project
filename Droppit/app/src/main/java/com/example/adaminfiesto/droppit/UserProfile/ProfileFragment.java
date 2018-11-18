@@ -102,6 +102,7 @@ public class ProfileFragment extends Fragment implements RecyclerImagerAdapter.R
         mFirebaseMethods = new FirebaseMethods(getActivity());
         mPhotos = new ArrayList<>();
         imgUrls = new ArrayList<>();
+
         setupToolbar();
         setupFirebaseAuth();
         setupBottomNavigationView();
@@ -181,7 +182,6 @@ public class ProfileFragment extends Fragment implements RecyclerImagerAdapter.R
     {
         Log.d(TAG, "setupGridView: Setting up image grid.");
 
-//        final ArrayList<Photo> photos = new ArrayList<>();
 
         final DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
         Query query = reference.child(getString(R.string.dbname_user_photos)).child(FirebaseAuth.getInstance().getCurrentUser().getUid());
@@ -221,7 +221,6 @@ public class ProfileFragment extends Fragment implements RecyclerImagerAdapter.R
                 for(int i = 0; i < mPhotos.size(); i++)
                 {
                     imgUrls.add(mPhotos.get(i).getImage_path());
-                   // mPhoto = mPhoto.g
                 }
 
                 setupRView();

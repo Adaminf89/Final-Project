@@ -134,7 +134,8 @@ public class ProfileActivity extends AppCompatActivity
         }
     }
 
-    public void verifyPermissions(String[] permissions) {
+    public void verifyPermissions(String[] permissions)
+    {
         Log.d(TAG, "verifyPermissions: verifying permissions.");
 
         ActivityCompat.requestPermissions(ProfileActivity.this, permissions, VERIFY_PERMISSIONS_REQUEST);

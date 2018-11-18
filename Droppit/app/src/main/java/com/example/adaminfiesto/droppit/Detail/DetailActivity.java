@@ -221,7 +221,8 @@ public class DetailActivity extends AppCompatActivity
     }
 
     @Override
-    protected void onPause() {
+    protected void onPause()
+    {
         super.onPause();
 
     }

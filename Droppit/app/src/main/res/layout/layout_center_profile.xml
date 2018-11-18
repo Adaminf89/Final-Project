@@ -105,7 +105,7 @@
                 android:id="@+id/display_bio"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text= "Test Data bio info"
+                android:text= "Please Enter Data"
                 android:textColor="@color/offWhite"
                 android:padding="20dp"
                 android:textSize="16sp"

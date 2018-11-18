@@ -378,25 +378,6 @@ public class FirebaseMethods
         count += 1;
         myRef.child("trending").child(photoID).setValue(count);
 
-//        Query q = myRef.child("trending").child(photoID);
-
-//        q.addListenerForSingleValueEvent(new ValueEventListener()
-//        {
-//            @Override
-//            public void onDataChange(@NonNull DataSnapshot dataSnapshot)
-//            {
-//
-//                count = dataSnapshot.getValue(Integer.class);
-//
-//
-//            }
-//
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError databaseError) {
-//
-//            }
-//
-//        });
 
     }
 
@@ -416,8 +397,6 @@ public class FirebaseMethods
 
         return settings;
     }
-
-
 
     private void setProfilePhoto(String url)
     {
@@ -463,35 +442,47 @@ public class FirebaseMethods
                 .child("caption")
                 .setValue(cap);
 
-        Query q = myRef.child("user_photos");
+        myRef.child(mContext.getString(R.string.dbname_user_photos))
+                .child(FirebaseAuth.getInstance()
+                        .getCurrentUser()
+                        .getUid())
+                        .child(photoID)
+                        .child("image_path")
+                        .setValue(imgUrl);
 
-        //query user photo node 1st node
-        q.addValueEventListener(new ValueEventListener()
-        {
+        myRef.child(mContext.getString(R.string.dbname_user_photos))
+                .child(FirebaseAuth.getInstance().getCurrentUser()
+                        .getUid()).child(photoID).child("caption").setValue(cap);
 
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot)
-            {
-                //users in node 2nd node
-                for(DataSnapshot singleSnapshot : dataSnapshot.getChildren())
-                {
-                    singleSnapshot.getRef().child(photoID).child("image_path").setValue(imgUrl);
-                    singleSnapshot.getRef().child(photoID).child("caption").setValue(cap);
-                    //photos in user  3rd node
-//                    for(DataSnapshot photo : singleSnapshot.getChildren())
-//                    {
-//                        //inside the matching node
-//                        photo.getRef().child(photoID).child("image_path").setValue(imgUrl);
-//                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError)
-            {
-
-            }
-        });
+//        Query q = myRef.child("user_photos");
+//
+//        //query user photo node 1st node
+//        q.addValueEventListener(new ValueEventListener()
+//        {
+//
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot dataSnapshot)
+//            {
+//                //users in node 2nd node
+//                for(DataSnapshot singleSnapshot : dataSnapshot.getChildren())
+//                {
+//                    singleSnapshot.getRef().child(photoID).child("image_path").push().setValue(imgUrl);
+//                    singleSnapshot.getRef().child(photoID).child("caption").push().setValue(cap);
+//                    //photos in user  3rd node
+////                    for(DataSnapshot photo : singleSnapshot.getChildren())
+////                    {
+////                        //inside the matching node
+////                        photo.getRef().child(photoID).child("image_path").setValue(imgUrl);
+////                    }
+//                }
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError databaseError)
+//            {
+//
+//            }
+//        });
     }
 
 
@@ -509,7 +500,6 @@ public class FirebaseMethods
                 .child("Rating")
                 .child(photokey)
                 .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-//                .child(getString(R.string.field_user_id))
                 .setValue(like.getRating());
 
 

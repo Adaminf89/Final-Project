@@ -33,8 +33,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Email"
+                android:textColor="@color/offWhite"
+                android:textColorHint="@color/offWhite"
+                android:textColorHighlight="@color/offWhite"
                 android:inputType="textEmailAddress"
-                android:textColorHint="#ffffff" />
+                />
 
         </android.support.design.widget.TextInputLayout>
 
@@ -49,7 +52,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPassword"
-                android:textColorHint="@color/white"
+                android:textColor="@color/offWhite"
+                android:textColorHint="@color/offWhite"
+                android:textColorHighlight="@color/offWhite"
                 android:hint="Password"
                 android:id="@+id/input_password"/>
 
@@ -63,6 +68,8 @@
             android:layout_marginBottom="25dp"
             android:background="@drawable/rec_button"
             android:textColor="@color/offWhite"
+            android:textColorHint="@color/offWhite"
+            android:textColorHighlight="@color/offWhite"
             android:text="Login"
             android:id="@+id/btn_login"
             android:padding="12dp"

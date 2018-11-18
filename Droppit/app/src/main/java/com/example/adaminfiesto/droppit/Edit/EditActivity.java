@@ -19,6 +19,7 @@ import android.widget.TextView;
 import com.example.adaminfiesto.droppit.DataModels.UserAccountSettings;
 import com.example.adaminfiesto.droppit.DataModels.UserSettings;
 import com.example.adaminfiesto.droppit.Detail.DetailActivity;
+import com.example.adaminfiesto.droppit.Google.GoogleActivity;
 import com.example.adaminfiesto.droppit.R;
 import com.example.adaminfiesto.droppit.UserProfile.ProfileActivity;
 import com.example.adaminfiesto.droppit.Utils.FirebaseMethods;
@@ -110,10 +111,11 @@ public class EditActivity extends AppCompatActivity
                             0, null, clasBitmap,
                             null, null, picID);
 
-//                    Intent backProfile = new Intent(mContext, DetailActivity.class);
+//                    Intent backProfile = new Intent(mContext, GoogleActivity.class);
 //                    backProfile.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
 //                    startActivity(backProfile);
                         finish();
+
                 }
             }
 

@@ -4,7 +4,7 @@ android {
     compileSdkVersion 27
     defaultConfig {
         applicationId "com.example.adaminfiesto.droppit"
-        minSdkVersion 26
+        minSdkVersion 25
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
@@ -41,14 +41,14 @@ dependencies {
     annotationProcessor 'com.mindorks.android:placeholderview-compiler:1.0.3'
 
     implementation 'com.android.support:recyclerview-v7:27.1.1' // example: 27.1.0
-    implementation 'com.google.firebase:firebase-core:16.0.3'
-    implementation 'com.google.firebase:firebase-database:16.0.2'
-    implementation 'com.google.firebase:firebase-auth:16.0.3'
-    implementation 'com.google.firebase:firebase-storage:16.0.2'
-    implementation 'com.google.firebase:firebase-crash:16.2.0'
-    implementation 'com.google.android.gms:play-services-maps:15.0.1'
-    implementation 'com.google.android.gms:play-services-places:15.0.1'
-    implementation 'com.google.android.gms:play-services-location:15.0.1'
+    implementation 'com.google.firebase:firebase-core:16.0.5'
+    implementation 'com.google.firebase:firebase-database:16.0.5'
+    implementation 'com.google.firebase:firebase-auth:16.0.5'
+    implementation 'com.google.firebase:firebase-storage:16.0.5'
+    implementation 'com.google.firebase:firebase-crash:16.2.1'
+    implementation 'com.google.android.gms:play-services-maps:16.0.0'
+    implementation 'com.google.android.gms:play-services-places:16.0.0'
+    implementation 'com.google.android.gms:play-services-location:16.0.0'
     implementation 'de.hdodenhof:circleimageview:2.2.0'
     implementation 'com.github.bumptech.glide:glide:4.7.1'
     // Glide v4 uses this new annotation processor -- see https://bumptech.github.io/glide/doc/generatedapi.html

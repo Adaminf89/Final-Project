@@ -20,6 +20,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RatingBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.adaminfiesto.droppit.AR.ARActivity;
 import com.example.adaminfiesto.droppit.DataModels.Comment;
@@ -162,6 +163,7 @@ public class DetailFragmentPrivate extends Fragment
                 ed.putString("lat", pData.getLocation());
                 ed.putString("long",pData.getLocationlong());
                 ed.putString("caption", pData.getCaption());
+                ed.putString("picID", pData.getPhoto_id());
                 ed.apply();
 
                 Intent intentHome = new Intent(getContext(), ARActivity.class);
@@ -185,11 +187,11 @@ public class DetailFragmentPrivate extends Fragment
                 ed.putString("caption", pData.getCaption());
                 ed.apply();
 
-
                 Intent intentEdit = new Intent(getContext(), EditActivity.class);
                 intentEdit.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 getContext().startActivity(intentEdit);
                 getActivity().overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+
             }
         });
 
@@ -212,7 +214,9 @@ public class DetailFragmentPrivate extends Fragment
             public void onClick(View v)
             {
                 mFirebaseMethods.collectPhoto(pData);
+                Toast.makeText(mContext, "Added", Toast.LENGTH_LONG).show();
             }
+
         });
 
         ivNavBtn.setOnClickListener(new View.OnClickListener()

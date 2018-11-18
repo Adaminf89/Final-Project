@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/backgroundBlue"
@@ -10,18 +11,61 @@
         android:layout_height="match_parent">
 
         <RelativeLayout
+            android:id="@+id/relLayout1"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/relLayout1">
-            <include layout="@layout/snippit_top_dropbar"/>
+            android:layout_height="wrap_content">
+
+            <include layout="@layout/snippit_top_dropbar" />
 
         </RelativeLayout>
+
+        <Button
+            android:id="@+id/comment_btn"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginEnd="0dp"
+            android:layout_marginBottom="156dp"
+            android:background="@drawable/chaticon"
+            android:textColor="@color/offWhite"
+            android:visibility="gone" />
+
+        <!--android:text="Comments"-->
+
+        <Button
+            android:id="@+id/add_btn"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginStart="0dp"
+            android:layout_marginTop="289dp"
+            android:background="@drawable/ic_add"
+            android:textColor="@color/offWhite"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/edit_btn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginStart="344dp"
+            android:layout_marginTop="288dp"
+            android:background="@drawable/editicon"
+            android:textColor="@color/offWhite"
+            android:visibility="gone" />
+
 
         <LinearLayout
             android:id="@+id/linLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_below="@id/relLayout1"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="0dp"
+            android:layout_marginTop="0dp"
             android:orientation="vertical">
 
             <TextView
@@ -29,25 +73,24 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:textSize="32sp"
+                android:text="Date"
                 android:textColor="@color/offWhite"
-                android:text="Date" />
+                android:textSize="32sp" />
 
             <TextView
                 android:id="@+id/textDistance"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/offWhite"
                 android:text="Distance"
-                android:visibility="gone"/>
+                android:textColor="@color/offWhite"
+                android:visibility="gone" />
 
             <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/event_image"
                 android:layout_width="180dp"
                 android:layout_height="180dp"
-                app:civ_border_width="0.5dp"
                 android:layout_gravity="center"
-                />
+                app:civ_border_width="0.5dp" />
 
             <RatingBar
                 android:id="@+id/ratingBar"
@@ -56,18 +99,18 @@
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="0dp"
-                android:numStars="5"/>
+                android:numStars="5" />
 
             <TextView
                 android:id="@+id/caption"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/offWhite"
-                android:textSize="32sp"
-                android:gravity="center"
                 android:layout_marginTop="0dp"
                 android:layout_marginBottom="10dp"
-                android:text="Caption" />
+                android:gravity="center"
+                android:text="Caption"
+                android:textColor="@color/offWhite"
+                android:textSize="32sp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -75,71 +118,37 @@
                 android:orientation="horizontal">
 
                 <Button
-                    android:id="@+id/comment_btn"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="@drawable/rec_button"
-                    android:textColor="@color/offWhite"
-                    android:text="Comments"
-                    android:visibility="gone"
-                    />
-
-                <Button
-                    android:id="@+id/add_btn"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="@drawable/rec_button"
-                    android:textColor="@color/offWhite"
-                    android:text="Add"
-                    android:visibility="gone"
-                    />
-
-                <Button
-                    android:id="@+id/edit_btn"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="@drawable/rec_button"
-                    android:textColor="@color/offWhite"
-                    android:text="Edit"
-                    android:visibility="gone"
-                    />
-
-                <Button
                     android:id="@+id/delete_btn"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:background="@drawable/rec_button"
-                    android:textColor="@color/offWhite"
                     android:text="Delete"
+                    android:textColor="@color/offWhite"
                     android:visibility="gone" />
 
             </LinearLayout>
 
             <ListView
                 android:id="@+id/commentLV"
-                android:layout_below="@id/linLayout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                />
+                android:layout_below="@id/linLayout" />
 
         </LinearLayout>
 
 
         <!--<RelativeLayout-->
-            <!--android:id="@+id/relLayout2"-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="match_parent"-->
-            <!--android:layout_below="@id/linLayout">-->
+        <!--android:id="@+id/relLayout2"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"-->
+        <!--android:layout_below="@id/linLayout">-->
 
-            <!--<ListView-->
-                <!--android:id="@+id/commentLV"-->
-                <!--android:layout_width="match_parent"-->
-                <!--android:layout_height="match_parent" -->
-                <!--/>-->
+        <!--<ListView-->
+        <!--android:id="@+id/commentLV"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent" -->
+        <!--/>-->
 
         <!--</RelativeLayout>-->
 

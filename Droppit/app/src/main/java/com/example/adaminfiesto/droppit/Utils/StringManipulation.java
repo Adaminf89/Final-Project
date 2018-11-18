@@ -18,7 +18,8 @@ public class StringManipulation
             StringBuilder sb = new StringBuilder();
             char[] charArray = string.toCharArray();
             boolean foundWord = false;
-            for( char c : charArray){
+            for( char c : charArray)
+            {
                 if(c == '#'){
                     foundWord = true;
                     sb.append(c);

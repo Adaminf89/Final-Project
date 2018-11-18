@@ -90,6 +90,12 @@ public class LoginActivity extends AppCompatActivity
     private void init()
     {
 
+        if(mAuth.getCurrentUser() != null)
+        {
+            Intent intent = new Intent(LoginActivity.this, FeedActivity.class);
+            startActivity(intent);
+            finish();
+        }
         //initialize the button for logging in
         Button btnLogin = findViewById(R.id.btn_login);
         btnLogin.setOnClickListener(new View.OnClickListener()
@@ -169,9 +175,11 @@ public class LoginActivity extends AppCompatActivity
         });
 
         TextView linkSignUp = findViewById(R.id.link_signup);
-        linkSignUp.setOnClickListener(new View.OnClickListener() {
+        linkSignUp.setOnClickListener(new View.OnClickListener()
+        {
             @Override
-            public void onClick(View v) {
+            public void onClick(View v)
+            {
                 Log.d(TAG, "onClick: navigating to register screen");
                 Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
                 startActivity(intent);
@@ -181,11 +189,7 @@ public class LoginActivity extends AppCompatActivity
          /*
          If the user is logged in then navigate to HomeActivity and call 'finish()'
           */
-        if(mAuth.getCurrentUser() != null){
-            Intent intent = new Intent(LoginActivity.this, FeedActivity.class);
-            startActivity(intent);
-            finish();
-        }
+
     }
 
     /**
@@ -197,15 +201,20 @@ public class LoginActivity extends AppCompatActivity
 
         mAuth = FirebaseAuth.getInstance();
 
-        mAuthListener = new FirebaseAuth.AuthStateListener() {
+        mAuthListener = new FirebaseAuth.AuthStateListener()
+        {
             @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth)
+            {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
 
-                if (user != null) {
+                if (user != null)
+                {
                     // User is signed in
                     Log.d(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
-                } else {
+                }
+                else
+                    {
                     // User is signed out
                     Log.d(TAG, "onAuthStateChanged:signed_out");
                 }

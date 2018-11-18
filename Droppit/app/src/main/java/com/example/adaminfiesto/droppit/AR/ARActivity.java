@@ -1,13 +1,11 @@
 package com.example.adaminfiesto.droppit.AR;
 
 import android.Manifest;
-import android.app.Activity;
-import android.app.ActivityManager;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -16,17 +14,17 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.adaminfiesto.droppit.DataModels.Comment;
 import com.example.adaminfiesto.droppit.DataModels.Photo;
 import com.example.adaminfiesto.droppit.R;
-import com.example.adaminfiesto.droppit.Utils.BottomNavigationViewHelper;
+import com.example.adaminfiesto.droppit.Utils.FirebaseMethods;
+import com.example.adaminfiesto.droppit.Utils.UniversalImageLoader;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.LatLng;
@@ -46,7 +44,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
-import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -55,6 +52,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import de.hdodenhof.circleimageview.CircleImageView;
 import uk.co.appoly.arcorelocation.LocationMarker;
 import uk.co.appoly.arcorelocation.LocationScene;
 
@@ -72,12 +70,18 @@ public class ARActivity extends AppCompatActivity
     private ArrayList<Photo> mPhotos;
     private LatLng thePlaceToShow;
     private ArFragment arFragment;
+    private String photoID;
+    Photo pdata;
     //ar
     private Snackbar loadingMessageSnackbar = null;
     private boolean installRequested;
     private ModelRenderable andyRenderable;
     private LocationScene locationScene;
-
+    TextView tv;
+    private FirebaseMethods mFirebaseMethods;
+    Dialog MyDialog;
+    Button add, close;
+    CircleImageView iv;
     private ArSceneView arSceneView;
     FusedLocationProviderClient fusedLocationProviderClient;
 
@@ -87,29 +91,64 @@ public class ARActivity extends AppCompatActivity
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ar);
+        mFirebaseMethods = new FirebaseMethods(mContext);
         passPhotos = new ArrayList<>();
         mUsers = new ArrayList<>();
         mPhotos = new ArrayList<>();
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         arSceneView = findViewById(R.id.arFrameLayout);
-//        getUserPhoto();
         getSharedData();
         arMethod();
 
     }
 
-    private void getSharedData()
+    public void MyCustomAlertDialog()
     {
-        SharedPreferences sharedPreferences = getSharedPreferences("arID", Context.MODE_PRIVATE);
-        lat = Double.valueOf(sharedPreferences.getString("lat",""));
-        logitude = Double.valueOf(sharedPreferences.getString("long", "" ));
-        name = sharedPreferences.getString("caption","");
 
+        MyDialog = new Dialog(ARActivity.this);
+        MyDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        MyDialog.setContentView(R.layout.cutom);
+        MyDialog.setTitle(pdata.getCaption());
+
+        add = MyDialog.findViewById(R.id.add);
+        close = MyDialog.findViewById(R.id.close);
+        iv = MyDialog.findViewById(R.id.image);
+        tv = MyDialog.findViewById(R.id.text);
+
+
+        add.setEnabled(true);
+        close.setEnabled(true);
+
+        UniversalImageLoader.setImage(pdata.getImage_path(), iv,null,"");
+        tv.setText(pdata.getCaption());
+
+        add.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                mFirebaseMethods.collectPhoto(pdata);
+                Toast.makeText(getApplicationContext(), "Added", Toast.LENGTH_LONG).show();
+                MyDialog.cancel();
+            }
+        });
+
+        close.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                MyDialog.cancel();
+            }
+        });
+
+        MyDialog.show();
     }
-
 
     public void arMethod()
     {
+        getUserPhoto();
+
         CompletableFuture<ModelRenderable> andy = ModelRenderable.builder()
                 .setSource(this, R.raw.andy)
                 .build();
@@ -136,10 +175,8 @@ public class ARActivity extends AppCompatActivity
 
         arSceneView
                 .getScene()
-                .addOnUpdateListener
-                //.setOnUpdateListener
+                .setOnUpdateListener
                         (frameTime -> {
-
 
                     Frame frame = arSceneView.getArFrame();
 
@@ -168,7 +205,17 @@ public class ARActivity extends AppCompatActivity
 
                 });
 
-    }
+        Handler h = new Handler();
+
+        h.post(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    getUserPhoto();
+                }
+            });
+        }
 
     private void getUserPhoto()
     {
@@ -210,42 +257,51 @@ public class ARActivity extends AppCompatActivity
         mPhotos.clear();
 
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
+        Query query = reference.child(getString(R.string.dbname_photos)).child(photoID);
+        System.out.println(photoID);
 
-        for(int i = 0; i < mUsers.size(); i++)
+        pdata = new Photo();
+
+        query.addListenerForSingleValueEvent(new ValueEventListener()
         {
-            Query query = reference.child(getString(R.string.dbname_user_photos))
-                    .child(mUsers.get(i)).orderByChild(getString(R.string.field_user_id)).equalTo(mUsers.get(i));
-
-            query.addListenerForSingleValueEvent(new ValueEventListener()
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot)
             {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot)
+                if(dataSnapshot.exists())
                 {
-                    //soo we are within the user_photo nods as such we need to get the values
-                    //of the nods and put them to the phote/droppit class
-                    for(DataSnapshot singleSnapshot : dataSnapshot.getChildren())
+
+                    Map<String, Object> objectMap = (HashMap<String, Object>) dataSnapshot.getValue();
+
+                    pdata.setCaption(objectMap.get(getString(R.string.field_caption)).toString());
+                    pdata.setTags(objectMap.get(getString(R.string.field_tags)).toString());
+                    pdata.setPhoto_id(objectMap.get(getString(R.string.field_photo_id)).toString());
+                    pdata.setUser_id(objectMap.get(getString(R.string.field_user_id)).toString());
+                    pdata.setLocation(objectMap.get(getString(R.string.field_location)).toString());
+                    pdata.setLocationlong(objectMap.get(getString(R.string.field_locationlong)).toString());
+                    pdata.setmPrivate(objectMap.get(getString(R.string.field_date_private)).toString());
+                    pdata.setDate_created(objectMap.get(getString(R.string.field_date_created)).toString());
+                    pdata.setImage_path(objectMap.get(getString(R.string.field_image_path)).toString());
+
+                    ArrayList<Comment> comments = new ArrayList<Comment>();
+
+                    for (DataSnapshot dSnapshot : dataSnapshot.child(getString(R.string.field_comments)).getChildren())
                     {
-                        Photo photo = new Photo();
-                        Map<String, Object> objectMap = (HashMap<String, Object>) singleSnapshot.getValue();
-
-                        photo.setCaption(objectMap.get(getString(R.string.field_caption)).toString());
-                        photo.setPhoto_id(objectMap.get(getString(R.string.field_photo_id)).toString());
-                        photo.setLocation(objectMap.get(getString(R.string.field_location)).toString());
-                        photo.setLocationlong(objectMap.get(getString(R.string.field_locationlong)).toString());
-
-                        mPhotos.add(photo);
+                        Comment comment = new Comment();
+                        comment.setUser_id(dSnapshot.getValue(Comment.class).getUser_id());
+                        comment.setComment(dSnapshot.getValue(Comment.class).getComment());
+                        comment.setDate_created(dSnapshot.getValue(Comment.class).getDate_created());
+                        comments.add(comment);
                     }
 
-                    getDeviceLocation();
+                    pdata.setComments(comments);
                 }
+            }
 
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                }
-            });
-
-        }
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError)
+            {
+            }
+        });
 
     }
 
@@ -268,15 +324,22 @@ public class ARActivity extends AppCompatActivity
             {
 
                 thePlaceToShow = new LatLng(location.getLatitude(), location.getLongitude());
+
                 //call the distance of the radius of from user
                 //grab the data for AR
                 for (Photo i : mPhotos)
                 {
+                    //this firebase photo lat/lon
                     LatLng latM = new LatLng(Double.valueOf(i.getLocation()), Double.valueOf(i.getLocationlong()));
+
+                    //compare the latM"firebase location " with theplace to show (userlocation)
                     double dis = CalculationByDistance(latM, thePlaceToShow);
 
+                    //at this point dis = the feet from between the two location
+                    //this if will only add the locations under 15f away
                     if (dis > 15.0f)
                     {
+                        //add to new array
                         passPhotos.add(i);
                     }
                 }
@@ -288,8 +351,6 @@ public class ARActivity extends AppCompatActivity
 
     }
 
-
-
     private Node getAndy(String name)
     {
         Node base = new Node();
@@ -297,29 +358,36 @@ public class ARActivity extends AppCompatActivity
         base.setRenderable(andyRenderable);
         Context c = this;
 
-        base.setOnTapListener((v, event) -> Toast.makeText(
-                c, "Location: "+name, Toast.LENGTH_LONG)
-                .show());
+//        base.setOnTapListener((v, event) -> Toast.makeText(
+//                c, "Location: "+name, Toast.LENGTH_LONG)
+//                .show());
+
+         base.setOnTapListener((v, event) -> MyCustomAlertDialog());
 
         return base;
     }
 
+    private void getSharedData()
+    {
+        SharedPreferences sharedPreferences = getSharedPreferences("arID", Context.MODE_PRIVATE);
+        lat = Double.valueOf(sharedPreferences.getString("lat",""));
+        logitude = Double.valueOf(sharedPreferences.getString("long", "" ));
+        photoID = sharedPreferences.getString("picID","");
+        name = sharedPreferences.getString("caption","");
+    }
 
     @Override
     protected void onResume()
     {
         super.onResume();
 
-        if (arSceneView == null)
-        {
-            return;
-        }
         if (arSceneView.getSession() == null)
         {
-            // If the session wasn't created yet, don't resume rendering.
-            // This can happen if ARCore needs to be updated or permissions are not granted yet.
-            try {
+
+            try
+            {
                 Session session = DemoUtils.createArSession(this, installRequested);
+
                 if (session == null)
                 {
                     installRequested = DemoUtils.hasCameraPermission(this);
@@ -402,20 +470,5 @@ public class ARActivity extends AppCompatActivity
 
         return Radius * c;
     }
-
-//    private void setupBottomNavigationView()
-//    {
-//        BottomNavigationViewEx bottomNavigationViewEx = findViewById(R.id.bottomNavView);
-//
-//        BottomNavigationViewHelper.setupBottomNavigationView(bottomNavigationViewEx);
-//
-//        BottomNavigationViewHelper.enableNavigation(mContext,this, bottomNavigationViewEx);
-//
-//        Menu menu = bottomNavigationViewEx.getMenu();
-//
-//        MenuItem menuItem = menu.getItem(ACTIVITY_NUM);
-//
-//        menuItem.setChecked(true);
-//    }
 
 }

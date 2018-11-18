@@ -109,7 +109,6 @@ public class GoogleActivity extends AppCompatActivity implements OnCompleteListe
         return mGeofencePendingIntent;
     }
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -141,7 +140,8 @@ public class GoogleActivity extends AppCompatActivity implements OnCompleteListe
             h.post(new Runnable()
             {
                 @Override
-                public void run() {
+                public void run()
+                {
                     getUserPhoto();
                 }
             });
@@ -151,7 +151,8 @@ public class GoogleActivity extends AppCompatActivity implements OnCompleteListe
             verifyPermissions(Permissions.PERMISSIONS);
         }
 
-        fab.setOnClickListener(new View.OnClickListener() {
+        fab.setOnClickListener(new View.OnClickListener()
+        {
             @Override
             public void onClick(View v) {
                 if (GoogleActivity.this.checkPermissions(Permissions.CAMERA_PERMISSION[0])) {
@@ -160,7 +161,8 @@ public class GoogleActivity extends AppCompatActivity implements OnCompleteListe
                     Log.d(TAG, "onClick: location " + dalocation);
                     Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                     startActivityForResult(cameraIntent, CAMERA_REQUEST_CODE);
-                } else {
+                } else
+                    {
                     return;
                 }
             }
@@ -168,7 +170,8 @@ public class GoogleActivity extends AppCompatActivity implements OnCompleteListe
     }
 
 
-    private GeofencingRequest getGeofencingRequest() {
+    private GeofencingRequest getGeofencingRequest()
+    {
         GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
         // The INITIAL_TRIGGER_ENTER flag indicates that geofencing service should trigger a
         // GEOFENCE_TRANSITION_ENTER notification when the geofence is added and if the device
@@ -182,9 +185,11 @@ public class GoogleActivity extends AppCompatActivity implements OnCompleteListe
         return builder.build();
     }
 
-    private void populateGeofenceList(ArrayList<Photo> points) {
+    private void populateGeofenceList(ArrayList<Photo> points)
+    {
 
-        for (Photo p : points) {
+        for (Photo p : points)
+        {
             Double lat = Double.valueOf(p.getLocation());
             Double longit = Double.valueOf(p.getLocationlong());
 
@@ -213,10 +218,12 @@ public class GoogleActivity extends AppCompatActivity implements OnCompleteListe
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == CAMERA_REQUEST_CODE) {
+        if (requestCode == CAMERA_REQUEST_CODE)
+        {
 
             Log.d(TAG, "onActivityResult: done taking a photo.");
             Log.d(TAG, "onActivityResult: attempting to navigate to final share screen.");
@@ -243,8 +250,11 @@ public class GoogleActivity extends AppCompatActivity implements OnCompleteListe
                         // for ActivityCompat#requestPermissions for more details.
                         return;
                     }
-                    fusedLocationProviderClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
-                        public void onSuccess(Location location) {
+
+                    fusedLocationProviderClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>()
+                    {
+                        public void onSuccess(Location location)
+                        {
                             thePlaceToShow = new LatLng(location.getLatitude(), location.getLongitude());
                             SharedPreferences sharedPreferences = getSharedPreferences("Test", Context.MODE_PRIVATE);
                             SharedPreferences.Editor ed = sharedPreferences.edit();
@@ -252,9 +262,11 @@ public class GoogleActivity extends AppCompatActivity implements OnCompleteListe
                             ed.putFloat("long", (float) thePlaceToShow.longitude);
                             ed.apply();
                         }
+
+
                     });
 
-                    startActivity(intent);
+
                 }
                 else
                     {
@@ -263,14 +275,12 @@ public class GoogleActivity extends AppCompatActivity implements OnCompleteListe
                         ed.putFloat("lat", (float) thePlaceToShow.latitude);
                         ed.putFloat("long", (float) thePlaceToShow.longitude);
                         ed.apply();
+                        finish();
                         startActivity(intent);
                     }
 
-
-
-
-
-
+                    finish();
+                    startActivity(intent);
 
             } catch (NullPointerException e)
             {
@@ -345,6 +355,10 @@ public class GoogleActivity extends AppCompatActivity implements OnCompleteListe
                         mPhotos.add(photo);
                     }
 
+//                    if(thePlaceToShow == null)
+//                    {
+//                        return;
+//                    }
 
                     checker(mPhotos);
 
@@ -361,6 +375,7 @@ public class GoogleActivity extends AppCompatActivity implements OnCompleteListe
 
     }
 
+
     private void setupViewPager()
     {
 
@@ -371,6 +386,9 @@ public class GoogleActivity extends AppCompatActivity implements OnCompleteListe
 
     public ArrayList<Photo> checker(ArrayList<Photo> P)
     {
+
+
+
         if (ActivityCompat.checkSelfPermission(mContext,
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED
@@ -394,6 +412,7 @@ public class GoogleActivity extends AppCompatActivity implements OnCompleteListe
             {
                 for (Photo i : P)
                 {
+
                     thePlaceToShow = new LatLng(location.getLatitude(), location.getLongitude());
                     LatLng latM = new LatLng(Double.valueOf(i.getLocation()), Double.valueOf(i.getLocationlong()));
                     double dis = CalculationByDistance(latM, thePlaceToShow);
@@ -458,7 +477,8 @@ public class GoogleActivity extends AppCompatActivity implements OnCompleteListe
         menuItem.setChecked(true);
     }
 
-    public void verifyPermissions(String[] permissions) {
+    public void verifyPermissions(String[] permissions)
+    {
         Log.d(TAG, "verifyPermissions: verifying permissions.");
 
         ActivityCompat.requestPermissions(GoogleActivity.this, permissions, VERIFY_PERMISSIONS_REQUEST);
@@ -609,10 +629,21 @@ public class GoogleActivity extends AppCompatActivity implements OnCompleteListe
     }
 
     @Override
+    protected void onRestart()
+    {
+        super.onRestart();
+//        mPhotos.clear();
+//        cPhotos.clear();
+//        getUserPhoto();
+    }
+
+    @Override
     protected void onResume()
     {
         super.onResume();
-
+        mPhotos.clear();
+        cPhotos.clear();
+        getUserPhoto();
     }
 
     @Override
@@ -627,8 +658,8 @@ public class GoogleActivity extends AppCompatActivity implements OnCompleteListe
     public void onStop()
     {
         super.onStop();
-        mPhotos.clear();
-        cPhotos.clear();
+//        mPhotos.clear();
+//        cPhotos.clear();
         removeGeofences();
         GeofenceTransitionsIntentService.shouldContinue = false;
         if (mAuthListener != null)

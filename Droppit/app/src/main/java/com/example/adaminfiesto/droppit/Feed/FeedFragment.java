@@ -98,11 +98,6 @@ public class FeedFragment extends Fragment
             final int count = i;
             Query query = reference.child(getString(R.string.dbname_user_photos)).child(mFollowing.get(i)).orderByChild(getString(R.string.field_user_id)).equalTo(mFollowing.get(i));
 
-//        FirebaseDatabase database = FirebaseDatabase.getInstance();
-//        DatabaseReference reference = database.getReference(getString(R.string.dbname_user_photos));
-//        Query query = reference;
-
-
             query.addListenerForSingleValueEvent(new ValueEventListener()
             {
                 @Override
@@ -118,6 +113,7 @@ public class FeedFragment extends Fragment
                         photo.setTags(objectMap.get(getString(R.string.field_tags)).toString());
                         photo.setPhoto_id(objectMap.get(getString(R.string.field_photo_id)).toString());
                         photo.setUser_id(objectMap.get(getString(R.string.field_user_id)).toString());
+                        photo.setmPrivate(objectMap.get("mPrivate").toString());
                         photo.setDate_created(objectMap.get(getString(R.string.field_date_created)).toString());
                         photo.setImage_path(objectMap.get(getString(R.string.field_image_path)).toString());
 
@@ -161,7 +157,8 @@ public class FeedFragment extends Fragment
                 Collections.sort(mPhotos, new Comparator<Photo>()
                 {
                     @Override
-                    public int compare(Photo o1, Photo o2) {
+                    public int compare(Photo o1, Photo o2)
+                    {
                         return o2.getDate_created().compareTo(o1.getDate_created());
                     }
                 });

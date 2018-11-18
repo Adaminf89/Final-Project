@@ -57,7 +57,9 @@
                     android:layout_centerVertical="true"
                     android:layout_marginStart="40dp"
                     android:background="@null"
+                    android:textColor="@color/offWhite"
                     android:textColorHint="@color/offWhite"
+                    android:textColorHighlight="@color/offWhite"
                     android:hint="username"
                     android:inputType="textNoSuggestions" />
 
@@ -85,7 +87,9 @@
                     android:layout_centerVertical="true"
                     android:layout_marginStart="40dp"
                     android:background="@null"
+                    android:textColor="@color/offWhite"
                     android:textColorHint="@color/offWhite"
+                    android:textColorHighlight="@color/offWhite"
                     android:hint="display name"
                     android:inputType="textNoSuggestions" />
 
@@ -112,7 +116,9 @@
                     android:layout_centerVertical="true"
                     android:layout_marginStart="40dp"
                     android:background="@null"
+                    android:textColor="@color/offWhite"
                     android:textColorHint="@color/offWhite"
+                    android:textColorHighlight="@color/offWhite"
                     android:hint="Description"
                     android:inputType="textNoSuggestions" />
 
@@ -124,6 +130,6 @@
 
         </RelativeLayout>
 
-
     </ScrollView>
+
     </merge>

@@ -57,7 +57,9 @@
                 android:background="@null"
                 android:hint="caption"
                 android:inputType="textNoSuggestions"
-                android:textColorHint="@color/offWhite" />
+                android:textColor="@color/offWhite"
+                android:textColorHint="@color/offWhite"
+                android:textColorHighlight="@color/offWhite" />
 
         </RelativeLayout>
 

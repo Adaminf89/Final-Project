@@ -132,7 +132,6 @@ public class DetailFragmentPublic extends Fragment
         {
             pData = (Photo) getArguments().getParcelable("Photo");
             checker = getArguments().getInt("c");
-
         }
 
         //show the btn if this drop matches the user id
@@ -159,6 +158,7 @@ public class DetailFragmentPublic extends Fragment
                     ed.putString("lat", pData.getLocation());
                     ed.putString("long",pData.getLocationlong());
                     ed.putString("caption", pData.getCaption());
+                    ed.putString("picID", pData.getPhoto_id());
                     ed.apply();
 
                     Intent intentHome = new Intent(getContext(), ARActivity.class);
@@ -221,6 +221,8 @@ public class DetailFragmentPublic extends Fragment
                 getContext().startActivity(intentHome);
                 getActivity().overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
 
+
+
             }
         });
 
@@ -230,6 +232,7 @@ public class DetailFragmentPublic extends Fragment
             public void onClick(View v)
             {
                mFirebaseMethods.collectPhoto(pData);
+               Toast.makeText(mContext, "Added", Toast.LENGTH_LONG).show();
             }
         });
 

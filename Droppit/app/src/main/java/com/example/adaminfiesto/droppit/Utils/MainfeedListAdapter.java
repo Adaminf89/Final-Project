@@ -75,6 +75,9 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo> {
     private LatLng thePlaceToShow;
     OnLoadMoreItemsListener mOnLoadMoreItemsListener;
     FusedLocationProviderClient fusedLocationProviderClient;
+    Like loadedLike;
+    String status = "";
+    String textR;
     Integer count = 0;
 
     public MainfeedListAdapter(@NonNull Context context, @LayoutRes int resource, @NonNull List<Photo> objects)
@@ -88,13 +91,12 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo> {
 
     static class ViewHolder
     {
-        TextView username, distance, timeDetla, caption, comments;
+        TextView username, distance, timeDetla, caption, comments, rating;
         CircleImageView mprofileImage;
         CircleImageView image;
         ListView mListView;
         String likes;
         RatingBar rbar;
-
 
         //var for each post user
         UserAccountSettings settings = new UserAccountSettings();
@@ -119,17 +121,18 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo> {
             holder.mprofileImage = convertView.findViewById(R.id.profile_photo);
             holder.rbar = convertView.findViewById(R.id.feed_rbar);
             holder.username = convertView.findViewById(R.id.username);
+            holder.rating = convertView.findViewById(R.id.raitingText);
             holder.caption = convertView.findViewById(R.id.image_caption);
             holder.comments = convertView.findViewById(R.id.image_comments_link);
             holder.distance = convertView.findViewById(R.id.image_Distance);
             holder.timeDetla = convertView.findViewById(R.id.image_time_posted);
             holder.image = convertView.findViewById(R.id.post_image);
             holder.mListView = convertView.findViewById(R.id.listViewFeed);
+
             holder.photo = getItem(position);
             holder.detector = new GestureDetector(mContext, new GestureListener(holder));
             holder.users = new StringBuilder();
             fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(mContext);
-
             convertView.setTag(holder);
 
         }
@@ -139,6 +142,7 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo> {
         }
 
 
+        String name = getItem(position).getmPrivate();
         //get the current users username (need for checking likes string)
         getCurrentUsername();
 
@@ -150,7 +154,10 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo> {
 
         if (ActivityCompat.checkSelfPermission(getContext(),
                 Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED)
+        {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -171,12 +178,10 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo> {
                 double dis = CalculationByDistance(latM, thePlaceToShow);
                 DecimalFormat df = new DecimalFormat("#.##");
 
-                holder.distance.setText(String.valueOf(df.format(dis))+"m");
+                holder.distance.setText(String.valueOf(df.format(dis))+" mile");
 
             }
         });
-
-
 
         Handler h = new Handler();
         h.post(new Runnable()
@@ -184,25 +189,43 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo> {
             @Override
             public void run()
             {
+
+
                 String picid = getItem(position).getPhoto_id();
-                rateing(picid);
-                holder.rbar.setRating(count);
+
+                //holder.rating.setText(textR);
+//                rateing(picid);
+//                holder.rbar.setRating(count);
             }
         });
 
-
+        List<Like> likes = getItem(position).getLikes();
 
         //set the comment
         List<Comment> comments = getItem(position).getComments();
 
         holder.comments.setText("View all " + comments.size() + " comments");
 
+        if(comments.size() > 2)
+        {
+            holder.rating.setText("ADVERAGE");
+        }
+
+        if(comments.size() < 1)
+        {
+            holder.rating.setText("LOW");
+        }
+
+        if(comments.size() > 1 && likes.size() < 3)
+        {
+            holder.rating.setText("ADVERAGE HIGH");
+        }
+
         holder.comments.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View v)
             {
-
                 Intent intentCom = new Intent(getContext(), CommentActivity.class);
                 intentCom.putExtra("ComData", getItem(position));
                 intentCom.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -247,70 +270,75 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo> {
 
         //set the profile image
         final ImageLoader imageLoader = ImageLoader.getInstance();
-        imageLoader.displayImage(getItem(position).getImage_path(), holder.image);
 
-        //get the profile image and username
-        DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
-        Query query = reference.child(mContext.getString(R.string.dbname_user_account_settings)).orderByChild(mContext.getString(R.string.field_user_id)).equalTo(getItem(position).getUser_id());
 
-        query.addListenerForSingleValueEvent(new ValueEventListener()
+
+        if(name.equals("false"))
         {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot)
+            imageLoader.displayImage("", holder.mprofileImage);
+            holder.mprofileImage.setClickable(false);
+            imageLoader.displayImage(getItem(position).getImage_path(), holder.image);
+            holder.username.setText("Private");
+        }
+        else
             {
-                for(DataSnapshot singleSnapshot : dataSnapshot.getChildren())
-                {
 
-                    Log.d(TAG, "onDataChange: found user: " + singleSnapshot.getValue(UserAccountSettings.class).getUsername());
+            imageLoader.displayImage(getItem(position).getImage_path(), holder.image);
 
-                    holder.username.setText(singleSnapshot.getValue(UserAccountSettings.class).getUsername());
-                    holder.username.setOnClickListener(new View.OnClickListener()
-                    {
-                        @Override
-                        public void onClick(View v)
-                        {
-                            Log.d(TAG, "onClick: navigating to profile of: " +
-                                    holder.user.getUsername());
+            //get the profile image and username
+            DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
+            Query query = reference.child(mContext.getString(R.string.dbname_user_account_settings)).orderByChild(mContext.getString(R.string.field_user_id)).equalTo(getItem(position).getUser_id());
 
-                            Intent intent = new Intent(mContext, ProfileActivity.class);
+            query.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    for (DataSnapshot singleSnapshot : dataSnapshot.getChildren()) {
 
-                            intent.putExtra(mContext.getString(R.string.calling_activity), mContext.getString(R.string.home_activity));
+                        Log.d(TAG, "onDataChange: found user: " + singleSnapshot.getValue(UserAccountSettings.class).getUsername());
 
-                            intent.putExtra(mContext.getString(R.string.intent_user), holder.user);
-                            mContext.startActivity(intent);
-                        }
+                        holder.username.setText(singleSnapshot.getValue(UserAccountSettings.class).getUsername());
+                        holder.username.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Log.d(TAG, "onClick: navigating to profile of: " +
+                                        holder.user.getUsername());
 
-                    });
+                                Intent intent = new Intent(mContext, ProfileActivity.class);
 
-                    //todo: create the flow to the users profile other than current users
-                    imageLoader.displayImage(singleSnapshot.getValue(UserAccountSettings.class).getProfile_photo(),holder.mprofileImage);
-                    holder.mprofileImage.setOnClickListener(new View.OnClickListener()
-                    {
-                        @Override
-                        public void onClick(View v)
-                        {
-                            Log.d(TAG, "onClick: navigating to profile of: " +
-                                    holder.user.getUsername());
+                                intent.putExtra(mContext.getString(R.string.calling_activity), mContext.getString(R.string.home_activity));
 
-                            Intent intent = new Intent(mContext, ProfileActivity.class);
-                            intent.putExtra(mContext.getString(R.string.calling_activity),mContext.getString(R.string.home_activity));
-                            intent.putExtra(mContext.getString(R.string.intent_user), holder.user);
+                                intent.putExtra(mContext.getString(R.string.intent_user), holder.user);
+                                mContext.startActivity(intent);
+                            }
 
-                            mContext.startActivity(intent);
-                        }
-                    });
+                        });
+
+                        //todo: create the flow to the users profile other than current users
+                        imageLoader.displayImage(singleSnapshot.getValue(UserAccountSettings.class).getProfile_photo(), holder.mprofileImage);
+                        holder.mprofileImage.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Log.d(TAG, "onClick: navigating to profile of: " +
+                                        holder.user.getUsername());
+
+                                Intent intent = new Intent(mContext, ProfileActivity.class);
+                                intent.putExtra(mContext.getString(R.string.calling_activity), mContext.getString(R.string.home_activity));
+                                intent.putExtra(mContext.getString(R.string.intent_user), holder.user);
+
+                                mContext.startActivity(intent);
+                            }
+                        });
+
+                    }
 
                 }
 
-            }
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
 
-            @Override
-            public void onCancelled(DatabaseError databaseError)
-            {
-
-            }
-        });
-
+                }
+            });
+        }
 
 
         //get the user object
@@ -459,19 +487,6 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo> {
         Like like = new Like();
         like.setUser_id(FirebaseAuth.getInstance().getCurrentUser().getUid());
 
-//        mReference.child(mContext.getString(R.string.dbname_photos))
-//                .child(holder.photo.getPhoto_id())
-//                .child(mContext.getString(R.string.field_likes))
-//                .child(newLikeID)
-//                .setValue(like);
-//
-//        mReference.child(mContext.getString(R.string.dbname_user_photos))
-//                .child(holder.photo.getUser_id())
-//                .child(holder.photo.getPhoto_id())
-//                .child(mContext.getString(R.string.field_likes))
-//                .child(newLikeID)
-//                .setValue(like);
-
         getLikesString(holder);
     }
 
@@ -501,10 +516,68 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo> {
         });
     }
 
+    public void getLikes(String photoID, String id)
+    {
+        loadedLike = new Like();
+        Query q = mReference.child("Likes").child(id).child(photoID);
+
+        q.addListenerForSingleValueEvent(new ValueEventListener()
+        {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot)
+            {
+                if(dataSnapshot.exists())
+                {
+                    loadedLike = dataSnapshot.getValue(Like.class);
+
+                    if(loadedLike == null)
+                    {
+                        textR = "Adverage";
+                        return;
+                    }
+
+                    if(loadedLike.getRating().toString().equals("0"))
+                    {
+                        textR = "Low";
+                    }
+                    else if(loadedLike.getRating().toString().equals("1"))
+                    {
+                        textR = "Low";
+                    }
+                    else if(loadedLike.getRating().toString().equals("2"))
+                    {
+                        textR = "Low Adverage";
+                    }
+                    else if(loadedLike.getRating().toString().equals("3"))
+                    {
+                        textR = "Adverage";
+                    }
+                    else if(loadedLike.getRating().toString().equals("4"))
+                    {
+                        textR = "High";
+                    }
+                    else if(loadedLike.getRating().toString().equals("1"))
+                    {
+                        textR = "High";
+                    }
+
+//                    rbar.setRating(Float.valueOf(loadedLike.getRating().toString()));
+                }
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
     private void rateing(String id)
     {
 
         Query query = mReference.child("Rating").child(id);
+
         query.addListenerForSingleValueEvent(new ValueEventListener()
         {
             @Override
@@ -512,7 +585,8 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo> {
             {
                 for(DataSnapshot singleSnapshot : dataSnapshot.getChildren())
                 {
-                    count = singleSnapshot.getValue(Integer.class);
+//                  count   =  singleSnapshot.getValue(Integer.class);
+                    count +=1;
                 }
 
             }
@@ -706,8 +780,8 @@ public class MainfeedListAdapter extends ArrayAdapter<Photo> {
 
         String difference = "";
         Calendar c = Calendar.getInstance();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.CANADA);
-        sdf.setTimeZone(TimeZone.getTimeZone("Canada/Pacific"));//google 'android list of timezones'
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
+        sdf.setTimeZone(TimeZone.getTimeZone("US/Eastern"));//google 'android list of timezones'
         Date today = c.getTime();
         sdf.format(today);
         Date timestamp;

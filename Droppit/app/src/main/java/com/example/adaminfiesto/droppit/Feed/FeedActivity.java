@@ -33,6 +33,7 @@ import com.example.adaminfiesto.droppit.Detail.DetailActivity;
 import com.example.adaminfiesto.droppit.Detail.DetailFragmentPrivate;
 import com.example.adaminfiesto.droppit.Detail.DetailFragmentPublic;
 import com.example.adaminfiesto.droppit.Google.GeofenceTransitionsIntentService;
+import com.example.adaminfiesto.droppit.Login.LoginActivity;
 import com.example.adaminfiesto.droppit.R;
 import com.example.adaminfiesto.droppit.UserProfile.ProfileActivity;
 import com.example.adaminfiesto.droppit.Utils.BottomNavigationViewHelper;
@@ -98,6 +99,7 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
         setContentView(R.layout.activity_feed);
         mListView = (ListView)findViewById(R.id.listViewFeed);
         recyclerView = findViewById(R.id.recyclerview);
+        mPaginatedPhotos = new ArrayList<>();
         mtrending = new ArrayList<>();
         tPhotos = new ArrayList<>();
         mFollowing = new ArrayList<>();
@@ -105,6 +107,12 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
         imgUrls = new ArrayList<>();
         setupFirebaseAuth();
 
+
+        mPaginatedPhotos.clear();
+        mPhotos.clear();
+        tPhotos.clear();
+        mFollowing.clear();
+        imgUrls.clear();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
         {
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSION_REQUEST_FINE_LOCATION);
@@ -211,6 +219,8 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
     {
 //        Log.d(TAG, "getPhotos: getting photos "+ mtrending.get(0).toString()+ " index 2 " + mtrending.get(1).toString());
 
+        tPhotos.clear();
+
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
 
         for(int i = 0; i < mtrending.size(); i++)
@@ -234,6 +244,7 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
                         photo.setPhoto_id(objectMap.get(getString(R.string.field_photo_id)).toString());
                         photo.setUser_id(objectMap.get(getString(R.string.field_user_id)).toString());
                         photo.setLocation(objectMap.get(getString(R.string.field_location)).toString());
+                        photo.setmPrivate(objectMap.get("mPrivate").toString());
                         photo.setLocationlong(objectMap.get(getString(R.string.field_locationlong)).toString());
                         photo.setDate_created(objectMap.get(getString(R.string.field_date_created)).toString());
                         photo.setImage_path(objectMap.get(getString(R.string.field_image_path)).toString());
@@ -260,7 +271,7 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
         Log.d(TAG, "getPhotos: getting photos");
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
 
-//        Log.d(TAG, "getPhotos: getting photos "+ mFollowing.get(0).toString()+ " index 2 " + mFollowing.get(1).toString());
+        mPhotos.clear();
 
         for(int i = 0; i < mFollowing.size(); i++)
         {
@@ -282,6 +293,7 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
                         photo.setPhoto_id(objectMap.get(getString(R.string.field_photo_id)).toString());
                         photo.setUser_id(objectMap.get(getString(R.string.field_user_id)).toString());
                         photo.setLocation(objectMap.get(getString(R.string.field_location)).toString());
+                        photo.setmPrivate(objectMap.get("mPrivate").toString());
                         photo.setLocationlong(objectMap.get(getString(R.string.field_locationlong)).toString());
                         photo.setDate_created(objectMap.get(getString(R.string.field_date_created)).toString());
                         photo.setImage_path(objectMap.get(getString(R.string.field_image_path)).toString());
@@ -322,6 +334,8 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
                         @Override
                         public void run()
                         {
+                            imgUrls.clear();
+
                             imgUrls = new ArrayList<String>();
 
                             for(int i = 0; i < tPhotos.size(); i++)
@@ -349,39 +363,11 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
         }
     }
 
-    public void likeChecker(String photoID)
-    {
-        int num = Integer.valueOf(photoID);
-
-        if(num > 0 && num < 1.5)
-        {
-
-        }
-
-        Query query = myRef.child("Rating").child(photoID);
-        query.addListenerForSingleValueEvent(new ValueEventListener()
-        {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot)
-            {
-                for(DataSnapshot singleSnapshot : dataSnapshot.getChildren())
-                {
-                    count = singleSnapshot.getValue(Integer.class);
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError)
-            {
-
-            }
-        });
-
-    }
 
     private void displayPhotos()
     {
-        mPaginatedPhotos = new ArrayList<>();
+
+        mPaginatedPhotos.clear();
 
         if(mPhotos != null)
         {
@@ -522,6 +508,7 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
         }
     }
 
+
     private void setupFirebaseAuth()
     {
         Log.d(TAG, "setupFirebaseAuth: setting up firebase auth.");
@@ -536,6 +523,9 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth)
             {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
+                //check if the user is logged in
+                checkCurrentUser(user);
+
                 if (user != null)
                 {
                     // User is signed in
@@ -566,6 +556,29 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
         {
             mAuth.removeAuthStateListener(mAuthListener);
         }
+    }
+
+    @Override
+    protected void onPause()
+    {
+        super.onPause();
+
+    }
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+
+    }
+
+    @Override
+    protected void onRestart()
+    {
+        super.onRestart();
+        //reload this activity if the back button is pressed from fragment
+        finish();
+        startActivity(getIntent());
     }
 
     private void setupBottomNavigationView()
@@ -633,6 +646,17 @@ public class FeedActivity extends AppCompatActivity implements RecyclerImagerAda
             case MY_PERMISSION_REQUEST_COARSE_LOCATION:
                 // do something for coarse location
                 break;
+        }
+    }
+
+    private void checkCurrentUser(FirebaseUser user)
+    {
+        Log.d(TAG, "checkCurrentUser: checking if user is logged in.");
+
+        if(user == null)
+        {
+            Intent intent = new Intent(mContext, LoginActivity.class);
+            startActivity(intent);
         }
     }
 

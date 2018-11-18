@@ -24,12 +24,11 @@ import com.google.ar.core.exceptions.UnavailableArcoreNotInstalledException;
 import com.google.ar.core.exceptions.UnavailableDeviceNotCompatibleException;
 import com.google.ar.core.exceptions.UnavailableException;
 import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
-import java.util.logging.Handler;
+import android.os.Handler;
 
 //Ref from : google solar system AR sample project
 //https://github.com/google-ar/sceneform-android-sdk/blob/master/samples/solarsystem/app/src/main/java/com/google/ar/sceneform/samples/solarsystem/DemoUtils.java
 //Copyright 2018 Google LLC
-
 public class DemoUtils
 {
 
@@ -66,13 +65,13 @@ public class DemoUtils
             toastText = errorMsg;
         }
 
-//        new Handler(Looper.getMainLooper())
-//                .post(
-//                        () -> {
-//                            Toast toast = Toast.makeText(context, toastText, Toast.LENGTH_LONG);
-//                            toast.setGravity(Gravity.CENTER, 0, 0);
-//                            toast.show();
-//                        });
+        new Handler(Looper.getMainLooper())
+                .post(
+                        () -> {
+                            Toast toast = Toast.makeText(context, toastText, Toast.LENGTH_LONG);
+                            toast.setGravity(Gravity.CENTER, 0, 0);
+                            toast.show();
+                        });
     }
 
     /**
@@ -84,20 +83,22 @@ public class DemoUtils
      */
 
     public static Session createArSession(Activity activity, boolean installRequested)
-            throws UnavailableException {
+            throws UnavailableException
+    {
         Session session = null;
         // if we have the camera permission, create the session
-        if (hasCameraPermission(activity)) {
-            switch (ArCoreApk.getInstance().requestInstall(activity, !installRequested)) {
+        if (hasCameraPermission(activity))
+        {
+            switch (ArCoreApk.getInstance().requestInstall(activity, !installRequested))
+            {
                 case INSTALL_REQUESTED:
                     return null;
                 case INSTALLED:
                     break;
             }
+
             session = new Session(activity);
-
             // IMPORTANT!!!  ArSceneView requires the `LATEST_CAMERA_IMAGE` non-blocking update mode.
-
             Config config = new Config(session);
             config.setUpdateMode(Config.UpdateMode.LATEST_CAMERA_IMAGE);
             session.configure(config);
